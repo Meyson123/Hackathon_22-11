@@ -1,3 +1,5 @@
+import os
+
 from fastapi import FastAPI, Request, Depends, HTTPException, status
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -15,10 +17,11 @@ from db import (
     get_team_members, get_user_team_in_hackathon, add_member_to_team,
     remove_member_from_team, update_team_name, get_available_teams
 )
-import sqlite3
-import os
+from dotenv import load_dotenv
 from datetime import datetime
+load_dotenv()
 
+ADM_PASS = os.getenv('ADM_PASS')
 app = FastAPI(title="Hackathon Hub")
 
 # Middleware для сессий
@@ -122,6 +125,7 @@ async def index(request: Request):
         "active_hackathons": active_hackathons
     })
 
+
 @app.get("/login.html", response_class=HTMLResponse)
 async def login_page(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
@@ -140,6 +144,26 @@ async def hackathons_page(request: Request):
         "request": request,
         "user": user
     })
+
+
+@app.get("/admin-hackathons.html", response_class=HTMLResponse)
+async def admin_hackathons_page(request: Request, user=Depends(require_admin)):
+    return templates.TemplateResponse("admin-hackathons.html", {"request": request, "user": user})
+
+
+@app.get("/admin-hackathon-details.html", response_class=HTMLResponse)
+async def admin_hackathon_details_page(request: Request, user=Depends(require_admin)):
+    return templates.TemplateResponse("admin-hackathon-details.html", {"request": request, "user": user})
+
+
+@app.get("/admin-webinars.html", response_class=HTMLResponse)
+async def admin_webinars_page(request: Request, user=Depends(require_admin)):
+    return templates.TemplateResponse("admin-webinars.html", {"request": request, "user": user})
+
+
+@app.get("/admin-analytics.html", response_class=HTMLResponse)
+async def admin_analytics_page(request: Request, user=Depends(require_admin)):
+    return templates.TemplateResponse("admin-analytics.html", {"request": request, "user": user})
 
 
 @app.get("/about.html", response_class=HTMLResponse)
@@ -226,6 +250,7 @@ async def role_checkup(hackathon_id: int, request: Request):
     elif role == "expert":
         return RedirectResponse(url=f"/hackathon/{hackathon_id}/expert")
 
+
 # ТВОИ СТРАНИЦЫ ДЛЯ РАЗНЫХ РОЛЕЙ
 @app.get("/hackathon/{hackathon_id}/user")
 async def user_hackathon_page(hackathon_id: int, request: Request):
@@ -245,6 +270,7 @@ async def user_hackathon_page(hackathon_id: int, request: Request):
         "user_role": user["role"]
     })
 
+
 @app.get("/hackathon/{hackathon_id}/captain")
 async def captain_hackathon_page(hackathon_id: int, request: Request):
     """Страница капитана хакатона"""
@@ -263,6 +289,7 @@ async def captain_hackathon_page(hackathon_id: int, request: Request):
         "user_role": user["role"]
     })
 
+
 @app.get("/hackathon/{hackathon_id}/case-holder")
 async def case_holder_hackathon_page(hackathon_id: int, request: Request):
     """Страница кейсодержателя хакатона"""
@@ -280,6 +307,7 @@ async def case_holder_hackathon_page(hackathon_id: int, request: Request):
         "user_id": user["id"],
         "user_role": user["role"]
     })
+
 
 @app.get("/hackathon/{hackathon_id}/admin")
 async def admin_hackathon_page(hackathon_id: int, request: Request):
@@ -300,13 +328,7 @@ async def admin_hackathon_page(hackathon_id: int, request: Request):
     })
 
 
-@app.get("/api/hackathons/{hackathon_id}")
-async def get_hackathon(hackathon_id: int, request: Request):
-    """Получить информацию о конкретном хакатоне"""
-    hackathon = get_hackathon_by_id(hackathon_id)
-    if not hackathon:
-        raise HTTPException(status_code=404, detail="Хакатон не найден")
-    return hackathon
+
 
 # API роуты друга (остаются без изменений)
 @app.post("/api/login")
@@ -453,6 +475,52 @@ async def update_current_user(request: Request, user_data: dict):
     updated_user = get_user_by_id(user_id)
     user_response = {k: v for k, v in updated_user.items() if k != "password"}
     return {"message": "Профиль обновлен", "user": user_response}
+
+
+@app.get("/admin-login.html", response_class=HTMLResponse)
+async def admin_login_page(request: Request):
+    return templates.TemplateResponse("admin-login.html", {"request": request})
+
+
+@app.post("/api/admin/login")
+async def admin_login(request: Request, credentials: dict):
+    """Admin login with predefined credentials"""
+    login = credentials.get("login", "").strip()
+    password = credentials.get("password", "").strip()
+
+    # Predefined admin credentials
+    if login == "admin" and password == ADM_PASS:
+        # Find or create admin user
+        user = get_user_by_email("admin@hackathon.local")
+        if not user:
+            # Create admin user if doesn't exist
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute('''
+                INSERT INTO Users (username, email, password, role, created_at)
+                VALUES (?, ?, ?, ?, ?)
+            ''', ("admin", "admin@hackathon.local", "admin123", "admin", datetime.now().isoformat()))
+            conn.commit()
+            user_id = cursor.lastrowid
+            conn.close()
+            user = get_user_by_id(user_id)
+        else:
+            # Update password if needed
+            if user["password"] != "admin123":
+                conn = get_db_connection()
+                cursor = conn.cursor()
+                cursor.execute("UPDATE Users SET password = ? WHERE id = ?", ("admin123", user["id"]))
+                conn.commit()
+                conn.close()
+
+        request.session["user_id"] = user["id"]
+        request.session["role"] = "admin"
+        request.session["email"] = user["email"]
+        request.session["username"] = user["username"]
+
+        return {"message": "Успешный вход администратора", "user": {k: v for k, v in user.items() if k != "password"}}
+    else:
+        raise HTTPException(status_code=401, detail="Неверный логин или пароль")
 
 
 @app.get("/api/users")
@@ -945,7 +1013,7 @@ async def add_team_member_endpoint(team_id: int, request: Request):
 
 
 @app.delete("/api/teams/{team_id}/members")
-async def remove_team_member_endpoint(team_id: int, user_id: Optional[int] = None, request: Request = None):
+async def remove_team_member_endpoint(team_id: int, user_id: Optional[int], request:Request ):
     """Удаление участника из команды"""
     user = get_current_user(request)
     if not user:
