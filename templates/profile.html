@@ -228,6 +228,7 @@
                 <li><a href="profile.html" class="active" id="profileLink" style="display: none;">Профиль</a></li>
                 <li><a href="login.html" id="loginLink">Вход</a></li>
                 <li><a href="/" id="logoutLink" style="display: none;">Выход</a></li>
+                <li><a href="expert.html" id="expertLink" style="display: none;">Панель эксперта</a></li>
                 <li><a href="admin.html" id="adminLink" style="display: none;">Админ</a></li>
             </ul>
         </div>
@@ -364,6 +365,14 @@
                             <option value="false">Нет</option>
                             <option value="true">Да</option>
                         </select>
+                    </div>
+                </div>
+
+                <!-- Hackathons and Reputation -->
+                <div class="profile-card">
+                    <h3>Участие в хакатонах</h3>
+                    <div id="hackathonsList">
+                        <p class="no-data">Загрузка...</p>
                     </div>
                 </div>
             </div>
@@ -680,10 +689,92 @@
             }, 3000);
         }
 
+        // Load hackathons participations
+        async function loadHackathons() {
+            try {
+                const response = await fetch('/api/participations');
+                if (!response.ok) {
+                    throw new Error('Ошибка загрузки участий');
+                }
+                const participations = await response.json();
+                displayHackathons(participations);
+            } catch (error) {
+                console.error('Ошибка загрузки участий:', error);
+                document.getElementById('hackathonsList').innerHTML = '<p class="no-data">Ошибка загрузки</p>';
+            }
+        }
+
+        function displayHackathons(participations) {
+            const container = document.getElementById('hackathonsList');
+            if (participations.length === 0) {
+                container.innerHTML = '<p class="no-data">Вы не участвуете ни в одном хакатоне</p>';
+                return;
+            }
+
+            const roleLabels = {
+                'captain': 'Капитан',
+                'team_member': 'Участник команды',
+                'free_participant': 'Свободный участник',
+                'expert': 'Эксперт'
+            };
+
+            container.innerHTML = participations.map(p => {
+                const startDate = new Date(p.start_date);
+                const endDate = new Date(p.end_date);
+                const hasTeam = p.team_id && (p.role === 'captain' || p.role === 'team_member');
+                
+                return `
+                    <div class="profile-info-item" style="margin-bottom: 1.5rem; border-left: 4px solid #667eea;">
+                        <strong>${p.hackathon_name}</strong>
+                        <div style="margin-top: 0.5rem;">
+                            <div><strong>Роль:</strong> ${roleLabels[p.role] || p.role}</div>
+                            <div><strong>Репутация:</strong> <span style="color: #667eea; font-weight: 600;">${p.reputation}</span></div>
+                            ${hasTeam ? `<div><strong>Команда:</strong> ${p.team_name || 'Команда #' + p.team_id}</div>` : ''}
+                            <div style="font-size: 0.9rem; color: #666; margin-top: 0.25rem;">
+                                ${startDate.toLocaleDateString('ru-RU')} - ${endDate.toLocaleDateString('ru-RU')}
+                            </div>
+                            <div style="font-size: 0.85rem; color: #999; margin-top: 0.25rem;">
+                                Статус: ${p.hackathon_status === 'upcoming' ? 'Предстоящий' : 
+                                         p.hackathon_status === 'ongoing' ? 'Текущий' : 'Завершён'}
+                            </div>
+                            <div style="margin-top: 0.75rem; display: flex; gap: 0.5rem;">
+                                ${hasTeam ? `<a href="team.html?hackathon_id=${p.hackathon_id}&team_id=${p.team_id}" class="btn btn-primary" style="padding: 0.5rem 1rem; text-decoration: none; font-size: 0.9rem;">Открыть команду</a>` : ''}
+                                <button onclick="cancelParticipation(${p.hackathon_id})" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.9rem; cursor: pointer;">Отменить участие</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function cancelParticipation(hackathonId) {
+            if (!confirm('Вы уверены, что хотите отменить участие в этом хакатоне?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/participations/${hackathonId}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    alert('Участие отменено');
+                    await loadHackathons();
+                } else {
+                    alert(result.detail || 'Ошибка отмены участия');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Ошибка соединения с сервером');
+            }
+        }
+
         // Initialize on page load
         window.addEventListener('DOMContentLoaded', () => {
             initSkillsSelector();
             loadProfile();
+            loadHackathons();
         });
     </script>
 </body>

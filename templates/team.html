@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Команда - Хакатон Хаб</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <style>
+        .team-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .team-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+        }
+        .team-header h2 {
+            margin: 0 0 0.5rem 0;
+        }
+        .team-info {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        .team-info h3 {
+            margin-top: 0;
+            color: #667eea;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 0.5rem;
+        }
+        .team-name-edit {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .team-name-edit input {
+            flex: 1;
+            padding: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 5px;
+            font-size: 1.1rem;
+        }
+        .team-name-edit button {
+            padding: 0.75rem 1.5rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .team-name-edit button:hover {
+            background: #5568d3;
+        }
+        .team-id {
+            background: #f0f9ff;
+            padding: 0.75rem;
+            border-radius: 5px;
+            margin-top: 1rem;
+            font-family: monospace;
+        }
+        .members-section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .members-section h3 {
+            margin-top: 0;
+            color: #667eea;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 0.5rem;
+        }
+        .member-item {
+            padding: 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .member-item .member-actions {
+            display: flex !important;
+            gap: 0.5rem;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        .member-item .member-actions .btn {
+            display: inline-block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        .member-info {
+            flex: 1;
+        }
+        .member-info strong {
+            color: #667eea;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+        .member-info small {
+            color: #666;
+        }
+        .role-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+        .role-captain {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .role-team_member {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        .member-actions {
+            display: flex;
+            gap: 0.5rem;
+            visibility: visible;
+            opacity: 1;
+        }
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+        .message {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        .message.success {
+            background: #10b981;
+            color: white;
+        }
+        .message.error {
+            background: #ef4444;
+            color: white;
+        }
+        .message.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- Upper Navigation Hub -->
+    <nav class="top-nav">
+        <div class="nav-container">
+            <button class="menu-btn" id="menuBtn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="logo">
+                <h1>Хакатон Хаб</h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="/">Главная</a></li>
+                <li><a href="hackathons.html">Хакатоны</a></li>
+                <li><a href="profile.html" id="profileLink" style="display: none;">Профиль</a></li>
+                <li><a href="expert.html" id="expertLink" style="display: none;">Панель эксперта</a></li>
+                <li><a href="admin.html" id="adminLink" style="display: none;">Админ</a></li>
+                <li><a href="/" id="logoutLink" style="display: none;">Выход</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="team-container">
+            <div class="team-header">
+                <h2 id="teamNameDisplay">Загрузка...</h2>
+                <p id="hackathonName">Загрузка...</p>
+            </div>
+
+            <div id="messageContainer"></div>
+
+            <div class="team-info">
+                <h3>Информация о команде</h3>
+                <div>
+                    <div>
+                        <strong style="font-size: 1.2rem;" id="teamNameText">-</strong>
+                    </div>
+                    <div id="teamDescriptionContainer" style="margin-top: 1rem;">
+                        <div id="teamDescriptionDisplay" style="color: #666; font-style: italic;">
+                            <p>-</p>
+                        </div>
+                        <div id="teamDescriptionEdit" style="display: none;">
+                            <textarea id="teamDescriptionInput" rows="4" style="width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 5px; font-family: inherit; resize: vertical;"></textarea>
+                            <div style="margin-top: 0.5rem; display: flex; gap: 0.5rem;">
+                                <button class="btn btn-primary" onclick="saveTeamDescription()">Сохранить</button>
+                                <button class="btn btn-secondary" onclick="cancelEditDescription()">Отмена</button>
+                            </div>
+                        </div>
+                        <div id="teamDescriptionActions" style="margin-top: 0.5rem; display: none;">
+                            <button class="btn btn-secondary" onclick="editTeamDescription()" style="font-size: 0.9rem; padding: 0.5rem 1rem;">Редактировать описание</button>
+                        </div>
+                    </div>
+                    <div style="margin-top: 1rem; display: flex; align-items: center; gap: 1rem;">
+                        <div class="team-id" style="flex: 1;">
+                            <strong>ID команды:</strong> <span id="teamIdDisplay">-</span>
+                        </div>
+                        <div id="recruitmentControl" style="display: none;">
+                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                <input type="checkbox" id="recruitmentClosed" onchange="toggleRecruitment()">
+                                <span>Закрыть набор</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="members-section">
+                <h3>Участники команды</h3>
+                <div id="membersList">
+                    <p>Загрузка...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/static/script.js"></script>
+    <script>
+        let teamData = null;
+        let isCaptain = false;
+
+        // Update navigation
+        if (typeof updateNavigation === 'function') {
+            updateNavigation();
+        }
+
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const hackathonId = urlParams.get('hackathon_id');
+        const teamId = urlParams.get('team_id');
+
+        async function loadTeam() {
+            if (!teamId) {
+                document.querySelector('.team-container').innerHTML = '<p>ID команды не указан</p>';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/teams/${teamId}`);
+                if (!response.ok) {
+                    throw new Error('Ошибка загрузки команды');
+                }
+                teamData = await response.json();
+                const userResponse = await fetch('/api/user');
+                if (userResponse.ok) {
+                    const user = await userResponse.json();
+                    isCaptain = teamData.captain_id === user.id;
+                }
+                displayTeam();
+            } catch (error) {
+                console.error('Error loading team:', error);
+                document.querySelector('.team-container').innerHTML = '<p>Ошибка загрузки команды: ' + error.message + '</p>';
+            }
+        }
+
+        function displayTeam() {
+            document.getElementById('teamNameDisplay').textContent = teamData.name;
+            document.getElementById('hackathonName').textContent = teamData.hackathon_name;
+            document.getElementById('teamNameText').textContent = teamData.name;
+            document.getElementById('teamIdDisplay').textContent = teamData.id;
+            
+            const descriptionDisplayEl = document.getElementById('teamDescriptionDisplay');
+            if (teamData.description) {
+                descriptionDisplayEl.innerHTML = `<p>${teamData.description}</p>`;
+            } else {
+                descriptionDisplayEl.innerHTML = '<p style="color: #999;">Описание не указано</p>';
+            }
+
+            // Show edit button only for captain
+            const descriptionActionsEl = document.getElementById('teamDescriptionActions');
+            if (isCaptain) {
+                descriptionActionsEl.style.display = 'block';
+            } else {
+                descriptionActionsEl.style.display = 'none';
+            }
+
+            // Show recruitment control only for captain
+            const recruitmentControlEl = document.getElementById('recruitmentControl');
+            if (isCaptain) {
+                recruitmentControlEl.style.display = 'block';
+                // Note: recruitment_closed field would need to be added to backend
+                // For now, we'll just show the UI
+                document.getElementById('recruitmentClosed').checked = teamData.recruitment_closed || false;
+            } else {
+                recruitmentControlEl.style.display = 'none';
+            }
+
+            displayMembers();
+        }
+
+        function editTeamDescription() {
+            document.getElementById('teamDescriptionDisplay').style.display = 'none';
+            document.getElementById('teamDescriptionEdit').style.display = 'block';
+            document.getElementById('teamDescriptionActions').style.display = 'none';
+            document.getElementById('teamDescriptionInput').value = teamData.description || '';
+        }
+
+        function cancelEditDescription() {
+            document.getElementById('teamDescriptionDisplay').style.display = 'block';
+            document.getElementById('teamDescriptionEdit').style.display = 'none';
+            if (isCaptain) {
+                document.getElementById('teamDescriptionActions').style.display = 'block';
+            }
+        }
+
+        async function saveTeamDescription() {
+            const newDescription = document.getElementById('teamDescriptionInput').value;
+            
+            try {
+                // Note: This endpoint would need to be updated in backend to accept description
+                // For now, we'll try to update it (it may fail if backend doesn't support it)
+                const response = await fetch(`/api/teams/${teamId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: teamData.name,
+                        description: newDescription
+                    })
+                });
+
+                if (response.ok) {
+                    teamData.description = newDescription;
+                    cancelEditDescription();
+                    displayTeam();
+                    showMessage('Описание команды обновлено', 'success');
+                } else {
+                    const error = await response.json();
+                    showMessage(error.detail || 'Ошибка обновления описания', 'error');
+                }
+            } catch (error) {
+                console.error('Error updating description:', error);
+                showMessage('Ошибка соединения с сервером', 'error');
+            }
+        }
+
+        async function toggleRecruitment() {
+            const isClosed = document.getElementById('recruitmentClosed').checked;
+            
+            try {
+                // Note: This would need a new endpoint in backend
+                // For now, we'll just show a message
+                showMessage('Функция закрытия набора требует обновления backend', 'error');
+                // Revert the checkbox since the operation didn't complete
+                document.getElementById('recruitmentClosed').checked = !isClosed;
+            } catch (error) {
+                console.error('Error toggling recruitment:', error);
+                showMessage('Ошибка соединения с сервером', 'error');
+            }
+        }
+
+        async function displayMembers() {
+            const container = document.getElementById('membersList');
+            if (!teamData.members || teamData.members.length === 0) {
+                container.innerHTML = '<p>В команде пока нет участников</p>';
+                return;
+            }
+
+            // Try to load user details for skills (requires backend support)
+            // Note: Since /api/users requires admin, we'll try to get skills from available data
+            // For now, we'll display what's available and note that full skills display needs backend update
+            let allUsers = null;
+            try {
+                // Try to get all users if current user is admin (this will fail for non-admins, which is fine)
+                const usersResponse = await fetch('/api/users');
+                if (usersResponse.ok) {
+                    allUsers = await usersResponse.json();
+                }
+            } catch (error) {
+                // Not an admin or endpoint not accessible - that's okay, we'll work with member data only
+                console.log('User details not accessible (requires admin or backend update)');
+            }
+
+            container.innerHTML = teamData.members.map(member => {
+                const isCurrentUser = member.user_id === (window.currentUserId || null);
+                const canRemove = isCaptain && member.role !== 'captain' && !isCurrentUser;
+                
+                // Try to get skills from allUsers if available
+                let skills = [];
+                if (allUsers) {
+                    const userDetails = allUsers.find(u => u.id === member.user_id);
+                    if (userDetails && userDetails.basics_knowledge) {
+                        skills = userDetails.basics_knowledge.split(',').map(s => s.trim()).filter(s => s);
+                    }
+                }
+                
+                return `
+                    <div class="member-item">
+                        <div class="member-info">
+                            <strong>${member.fio || member.username}</strong>
+                            <span class="role-badge role-${member.role}">
+                                ${member.role === 'captain' ? 'Капитан' : 'Участник'}
+                            </span>
+                            <div style="margin-top: 0.5rem;">
+                                <small>${member.email}</small>
+                                ${member.telegram_nickname ? `<br><small><strong>Telegram:</strong> ${member.telegram_nickname}</small>` : '<br><small style="color: #999;">Telegram не указан</small>'}
+                            </div>
+                            ${skills.length > 0 ? `
+                            <div style="margin-top: 0.5rem;">
+                                <small><strong>Навыки:</strong></small><br>
+                                <div style="margin-top: 0.25rem;">
+                                    ${skills.map(skill => `<span class="skill-tag" style="display: inline-block; background: #e0e7ff; color: #3730a3; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.85rem; margin-right: 0.25rem; margin-bottom: 0.25rem;">${skill}</span>`).join('')}
+                                </div>
+                            </div>
+                            ` : '<div style="margin-top: 0.5rem;"><small style="color: #999;">Навыки: не указаны</small></div>'}
+                            <div style="margin-top: 0.5rem;">
+                                <small>Репутация: <strong style="color: #667eea;">${member.reputation}</strong></small>
+                            </div>
+                        </div>
+                        <div class="member-actions">
+                            ${canRemove ? `<button class="btn btn-danger" onclick="removeMember(${member.user_id})">Удалить</button>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+
+        async function removeMember(userId) {
+            if (!confirm('Вы уверены, что хотите удалить этого участника из команды?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/teams/${teamId}/members?user_id=${userId}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    showMessage('Участник удален из команды', 'success');
+                    await loadTeam();
+                } else {
+                    showMessage(result.detail || 'Ошибка удаления', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('Ошибка соединения с сервером', 'error');
+            }
+        }
+
+        function showMessage(text, type) {
+            const container = document.getElementById('messageContainer');
+            container.innerHTML = `<div class="message ${type} active">${text}</div>`;
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 3000);
+        }
+
+        // Load current user ID
+        async function loadCurrentUserId() {
+            try {
+                const response = await fetch('/api/user');
+                if (response.ok) {
+                    const user = await response.json();
+                    window.currentUserId = user.id;
+                }
+            } catch (error) {
+                console.error('Error loading user:', error);
+            }
+        }
+
+        // Initialize
+        window.addEventListener('DOMContentLoaded', async () => {
+            await loadCurrentUserId();
+            await loadTeam();
+        });
+    </script>
+</body>
+</html>
+

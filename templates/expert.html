@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель эксперта - Хакатон Хаб</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <style>
+        .expert-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .expert-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+        }
+        .expert-header h2 {
+            margin: 0 0 0.5rem 0;
+        }
+        .hackathon-selector {
+            margin-bottom: 2rem;
+        }
+        .hackathon-selector select {
+            width: 100%;
+            max-width: 500px;
+            padding: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        .participants-table {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        thead {
+            background: #667eea;
+            color: white;
+        }
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        th {
+            font-weight: 600;
+        }
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+        .reputation-input {
+            width: 80px;
+            padding: 0.5rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .reputation-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .btn-update {
+            padding: 0.5rem 1rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .btn-update:hover {
+            background: #5568d3;
+        }
+        .role-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .role-captain {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .role-team_member {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        .role-free_participant {
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+        .role-expert {
+            background: #fce7f3;
+            color: #9f1239;
+        }
+        .message {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        .message.success {
+            background: #10b981;
+            color: white;
+        }
+        .message.error {
+            background: #ef4444;
+            color: white;
+        }
+        .message.active {
+            display: block;
+        }
+        .no-hackathons {
+            text-align: center;
+            padding: 3rem;
+            color: #999;
+        }
+        .history-btn {
+            padding: 0.5rem 1rem;
+            background: #6b7280;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .history-btn:hover {
+            background: #4b5563;
+        }
+    </style>
+</head>
+<body>
+    <!-- Upper Navigation Hub -->
+    <nav class="top-nav">
+        <div class="nav-container">
+            <button class="menu-btn" id="menuBtn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="logo">
+                <h1>Хакатон Хаб</h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="/">Главная</a></li>
+                <li><a href="hackathons.html">Хакатоны</a></li>
+                <li><a href="profile.html" id="profileLink" style="display: none;">Профиль</a></li>
+                <li><a href="expert.html" class="active" id="expertLink" style="display: none;">Панель эксперта</a></li>
+                <li><a href="admin.html" id="adminLink" style="display: none;">Админ</a></li>
+                <li><a href="/" id="logoutLink" style="display: none;">Выход</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="expert-container">
+            <div class="expert-header">
+                <h2>Панель эксперта</h2>
+                <p>Управление репутацией участников в хакатонах</p>
+            </div>
+
+            <div id="messageContainer"></div>
+
+            <div class="hackathon-selector">
+                <label for="hackathonSelect"><strong>Выберите хакатон:</strong></label>
+                <select id="hackathonSelect">
+                    <option value="">-- Загрузка --</option>
+                </select>
+            </div>
+
+            <div id="participantsContainer">
+                <div class="no-hackathons">
+                    <p>Выберите хакатон для управления репутацией</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Reputation History Modal -->
+    <div id="historyModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>История изменений репутации</h2>
+            <div id="historyContent"></div>
+        </div>
+    </div>
+
+    <script src="/static/script.js"></script>
+    <style>
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 2rem;
+            border: 1px solid #888;
+            width: 90%;
+            max-width: 800px;
+            border-radius: 10px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .close-modal {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close-modal:hover {
+            color: #000;
+        }
+        .history-item {
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        .history-item strong {
+            color: #667eea;
+        }
+    </style>
+    <script>
+        let currentUser = null;
+        let expertHackathons = [];
+        let currentParticipants = [];
+
+        // Update navigation
+        if (typeof updateNavigation === 'function') {
+            updateNavigation();
+        }
+
+        // Load current user
+        async function loadUser() {
+            try {
+                const response = await fetch('/api/user');
+                if (!response.ok) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                currentUser = await response.json();
+                await loadExpertHackathons();
+            } catch (error) {
+                console.error('Error loading user:', error);
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Load hackathons where user is expert
+        async function loadExpertHackathons() {
+            try {
+                const response = await fetch('/api/participations');
+                if (!response.ok) {
+                    throw new Error('Ошибка загрузки участий');
+                }
+                const participations = await response.json();
+                expertHackathons = participations.filter(p => p.role === 'expert');
+                
+                const select = document.getElementById('hackathonSelect');
+                if (expertHackathons.length === 0) {
+                    select.innerHTML = '<option value="">Вы не являетесь экспертом ни в одном хакатоне</option>';
+                    document.getElementById('participantsContainer').innerHTML = 
+                        '<div class="no-hackathons"><p>Вы не являетесь экспертом ни в одном хакатоне</p></div>';
+                } else {
+                    select.innerHTML = '<option value="">-- Выберите хакатон --</option>' +
+                        expertHackathons.map(h => 
+                            `<option value="${h.hackathon_id}">${h.hackathon_name}</option>`
+                        ).join('');
+                    
+                    select.addEventListener('change', async (e) => {
+                        if (e.target.value) {
+                            await loadParticipants(parseInt(e.target.value));
+                        } else {
+                            document.getElementById('participantsContainer').innerHTML = 
+                                '<div class="no-hackathons"><p>Выберите хакатон для управления репутацией</p></div>';
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading hackathons:', error);
+            }
+        }
+
+        // Load participants for selected hackathon
+        async function loadParticipants(hackathonId) {
+            try {
+                const response = await fetch(`/api/hackathons/${hackathonId}/participants`);
+                if (!response.ok) {
+                    if (response.status === 403) {
+                        showMessage('У вас нет прав эксперта в этом хакатоне', 'error');
+                    } else {
+                        throw new Error('Ошибка загрузки участников');
+                    }
+                    return;
+                }
+                currentParticipants = await response.json();
+                renderParticipants();
+            } catch (error) {
+                console.error('Error loading participants:', error);
+                showMessage('Ошибка загрузки участников', 'error');
+            }
+        }
+
+        function renderParticipants() {
+            const container = document.getElementById('participantsContainer');
+            if (currentParticipants.length === 0) {
+                container.innerHTML = '<div class="no-hackathons"><p>В этом хакатоне пока нет участников</p></div>';
+                return;
+            }
+
+            const roleLabels = {
+                'captain': 'Капитан',
+                'team_member': 'Участник команды',
+                'free_participant': 'Свободный участник',
+                'expert': 'Эксперт'
+            };
+
+            container.innerHTML = `
+                <div class="participants-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Участник</th>
+                                <th>Роль</th>
+                                <th>Текущая репутация</th>
+                                <th>Новая репутация</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${currentParticipants.map(p => `
+                                <tr>
+                                    <td>
+                                        <strong>${p.fio || p.username}</strong><br>
+                                        <small style="color: #666;">${p.email}</small>
+                                    </td>
+                                    <td>
+                                        <span class="role-badge role-${p.role}">
+                                            ${roleLabels[p.role] || p.role}
+                                        </span>
+                                    </td>
+                                    <td><strong style="color: #667eea;">${p.reputation}</strong></td>
+                                    <td>
+                                        <input type="number" 
+                                               class="reputation-input" 
+                                               id="reputation-${p.id}" 
+                                               value="${p.reputation}" 
+                                               min="0">
+                                    </td>
+                                    <td>
+                                        <button class="btn-update" onclick="updateReputation(${p.id}, ${p.reputation})">
+                                            Обновить
+                                        </button>
+                                        <button class="history-btn" onclick="showHistory(${p.id})" style="margin-left: 0.5rem;">
+                                            История
+                                        </button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        async function updateReputation(participationId, oldReputation) {
+            const input = document.getElementById(`reputation-${participationId}`);
+            const newReputation = parseInt(input.value);
+            
+            if (isNaN(newReputation) || newReputation < 0) {
+                showMessage('Введите корректное значение репутации', 'error');
+                return;
+            }
+
+            if (newReputation === oldReputation) {
+                showMessage('Репутация не изменилась', 'error');
+                return;
+            }
+
+            const reason = prompt('Укажите причину изменения репутации (необязательно):') || null;
+
+            try {
+                const response = await fetch('/api/reputation', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        participation_id: participationId,
+                        new_reputation: newReputation,
+                        reason: reason
+                    })
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    showMessage('Репутация успешно обновлена', 'success');
+                    // Reload participants
+                    const hackathonId = parseInt(document.getElementById('hackathonSelect').value);
+                    await loadParticipants(hackathonId);
+                } else {
+                    showMessage(result.detail || 'Ошибка обновления репутации', 'error');
+                }
+            } catch (error) {
+                console.error('Error updating reputation:', error);
+                showMessage('Ошибка соединения с сервером', 'error');
+            }
+        }
+
+        async function showHistory(participationId) {
+            try {
+                const response = await fetch(`/api/reputation/history/${participationId}`);
+                if (!response.ok) {
+                    throw new Error('Ошибка загрузки истории');
+                }
+                const history = await response.json();
+                renderHistory(history);
+                document.getElementById('historyModal').style.display = 'block';
+            } catch (error) {
+                console.error('Error loading history:', error);
+                showMessage('Ошибка загрузки истории', 'error');
+            }
+        }
+
+        function renderHistory(history) {
+            const container = document.getElementById('historyContent');
+            if (history.length === 0) {
+                container.innerHTML = '<p>История изменений отсутствует</p>';
+                return;
+            }
+
+            container.innerHTML = history.map(h => {
+                const date = new Date(h.created_at);
+                return `
+                    <div class="history-item">
+                        <div><strong>Было:</strong> ${h.old_reputation} → <strong>Стало:</strong> ${h.new_reputation}</div>
+                        <div style="margin-top: 0.5rem; color: #666;">
+                            <strong>Изменил:</strong> ${h.changed_by_fio || h.changed_by_username}
+                        </div>
+                        ${h.reason ? `<div style="margin-top: 0.25rem; color: #999; font-style: italic;">Причина: ${h.reason}</div>` : ''}
+                        <div style="margin-top: 0.25rem; color: #999; font-size: 0.9rem;">
+                            ${date.toLocaleString('ru-RU')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function showMessage(text, type) {
+            const container = document.getElementById('messageContainer');
+            container.innerHTML = `<div class="message ${type} active">${text}</div>`;
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 3000);
+        }
+
+        // Close modal handlers
+        document.querySelector('.close-modal').addEventListener('click', () => {
+            document.getElementById('historyModal').style.display = 'none';
+        });
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('historyModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Initialize
+        window.addEventListener('DOMContentLoaded', () => {
+            loadUser();
+        });
+    </script>
+</body>
+</html>
+

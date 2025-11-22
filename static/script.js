@@ -62,6 +62,7 @@ async function updateNavigation() {
     const logoutLink = document.getElementById('logoutLink');
     const adminLink = document.getElementById('adminLink');
     const profileLink = document.getElementById('profileLink');
+    const expertLink = document.getElementById('expertLink');
     
     if (user) {
         if (loginLink) loginLink.style.display = 'none';
@@ -71,6 +72,22 @@ async function updateNavigation() {
         
         if (user.role === 'admin' && adminLink) {
             adminLink.style.display = 'block';
+        }
+        
+        // Check if user is expert in any hackathon
+        if (expertLink) {
+            try {
+                const participationsResponse = await fetch('/api/participations');
+                if (participationsResponse.ok) {
+                    const participations = await participationsResponse.json();
+                    const isExpert = participations.some(p => p.role === 'expert');
+                    if (isExpert || user.role === 'admin') {
+                        expertLink.style.display = 'block';
+                    }
+                }
+            } catch (error) {
+                // Silently fail
+            }
         }
         
         if (logoutLink) {
@@ -90,6 +107,7 @@ async function updateNavigation() {
         if (logoutLink) logoutLink.style.display = 'none';
         if (adminLink) adminLink.style.display = 'none';
         if (profileLink) profileLink.style.display = 'none';
+        if (expertLink) expertLink.style.display = 'none';
     }
 }
 
@@ -168,13 +186,9 @@ if (registrationForm) {
                 }
                 registrationForm.reset();
                 
-                // Redirect based on role - ИСПРАВЛЕНО: index.html → /
+                // Redirect to profile page after successful registration
                 setTimeout(() => {
-                    if (result.user.role === 'admin') {
-                        window.location.href = 'admin.html';
-                    } else {
-                        window.location.href = '/';
-                    }
+                    window.location.href = '/profile.html';
                 }, 1500);
             } else {
                 if (errorMessage) {

@@ -26,6 +26,7 @@
                 <li><a href="profile.html" id="profileLink" style="display: none;">Профиль</a></li>
                 <li><a href="login.html" id="loginLink">Вход</a></li>
                 <li><a href="/" id="logoutLink" style="display: none;">Выход</a></li>
+                <li><a href="expert.html" id="expertLink" style="display: none;">Панель эксперта</a></li>
                 <li><a href="admin.html" id="adminLink" style="display: none;">Админ</a></li>
             </ul>
         </div>
@@ -102,261 +103,523 @@
         <!-- Upcoming Hackathons -->
         <section class="hackathons-section" id="upcoming">
             <h2 class="section-title">Предстоящие Хакатоны</h2>
-            <div class="hackathons-grid">
-                <div class="hackathon-card">
-                    <div class="hackathon-badge upcoming">Предстоящий</div>
-                    <h3>Tech Innovation Challenge 2024</h3>
-                    <p class="hackathon-org">Организатор: TechCorp</p>
-                    <p class="hackathon-desc">Создайте инновационные решения для будущего технологий. Фокус на AI, IoT и блокчейн.</p>
-                    <div class="hackathon-details">
-                        <div class="detail-item">
-                            <span class="detail-icon">📅</span>
-                            <span>15-17 Марта 2024</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-icon">⏱️</span>
-                            <span>48 часов</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-icon">💰</span>
-                            <span>$50,000</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-icon">👥</span>
-                            <span>До 5 человек</span>
-                        </div>
-                    </div>
-                    <a href="registration.html" class="btn btn-primary btn-full">Зарегистрироваться</a>
-                </div>
-
-                <div class="hackathon-card">
-                    <div class="hackathon-badge upcoming">Предстоящий</div>
-                    <h3>GreenTech Hackathon</h3>
-                    <p class="hackathon-org">Организатор: EcoSolutions</p>
-                    <p class="hackathon-desc">Разработайте экологичные технологические решения для устойчивого будущего.</p>
-                    <div class="hackathon-details">
-                        <div class="detail-item">
-                            <span class="detail-icon">📅</span>
-                            <span>22-24 Марта 2024</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-icon">⏱️</span>
-                            <span>36 часов</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-icon">💰</span>
-                            <span>$30,000</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-icon">👥</span>
-                            <span>До 4 человек</span>
-                        </div>
-                    </div>
-                    <a href="registration.html" class="btn btn-primary btn-full">Зарегистрироваться</a>
-                </div>
-
-                <div class="hackathon-card">
-                    <div class="hackathon-badge upcoming">Предстоящий</div>
-                    <h3>FinTech Innovation Summit</h3>
-                    <p class="hackathon-org">Организатор: FinanceHub</p>
-                    <p class="hackathon-desc">Создайте революционные финансовые технологии и платежные решения.</p>
-                    <div class="hackathon-details">
-                        <div class="detail-item">
-                            <span class="detail-icon">📅</span>
-                            <span>5-7 Апреля 2024</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-icon">⏱️</span>
-                            <span>48 часов</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-icon">💰</span>
-                            <span>$75,000</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-icon">👥</span>
-                            <span>До 6 человек</span>
-                        </div>
-                    </div>
-                    <a href="registration.html" class="btn btn-primary btn-full">Зарегистрироваться</a>
-                </div>
+            <div class="hackathons-grid" id="upcoming-hackathons">
+                <p>Загрузка...</p>
             </div>
         </section>
 
         <!-- Ongoing Hackathons -->
         <section class="hackathons-section" id="ongoing" style="display: none;">
             <h2 class="section-title">Текущие Хакатоны</h2>
-            <div class="hackathons-grid">
-                <div class="hackathon-card">
-                    <div class="hackathon-badge ongoing">Идёт сейчас</div>
-                    <h3>Web Development Marathon</h3>
-                    <p class="hackathon-org">Организатор: WebDev Academy</p>
-                    <p class="hackathon-desc">Создайте современные веб-приложения с использованием последних технологий.</p>
-                    <div class="hackathon-details">
-                        <div class="detail-item">
-                            <span class="detail-icon">📅</span>
-                            <span>10-12 Марта 2024</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-icon">⏱️</span>
-                            <span>48 часов</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-icon">💰</span>
-                            <span>$25,000</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-icon">👥</span>
-                            <span>До 4 человек</span>
-                        </div>
-                    </div>
-                    <a href="registration.html" class="btn btn-primary btn-full">Присоединиться</a>
-                </div>
-
-                <div class="hackathon-card">
-                    <div class="hackathon-badge ongoing">Идёт сейчас</div>
-                    <h3>Mobile App Challenge</h3>
-                    <p class="hackathon-org">Организатор: MobileFirst</p>
-                    <p class="hackathon-desc">Разработайте инновационные мобильные приложения для iOS и Android.</p>
-                    <div class="hackathon-details">
-                        <div class="detail-item">
-                            <span class="detail-icon">📅</span>
-                            <span>8-10 Марта 2024</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-icon">⏱️</span>
-                            <span>48 часов</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-icon">💰</span>
-                            <span>$40,000</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-icon">👥</span>
-                            <span>До 5 человек</span>
-                        </div>
-                    </div>
-                    <a href="registration.html" class="btn btn-primary btn-full">Присоединиться</a>
-                </div>
-
-                <div class="hackathon-card">
-                    <div class="hackathon-badge ongoing">Идёт сейчас</div>
-                    <h3>AI & Machine Learning Hack</h3>
-                    <p class="hackathon-org">Организатор: AI Labs</p>
-                    <p class="hackathon-desc">Создайте интеллектуальные решения с использованием искусственного интеллекта.</p>
-                    <div class="hackathon-details">
-                        <div class="detail-item">
-                            <span class="detail-icon">📅</span>
-                            <span>12-14 Марта 2024</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-icon">⏱️</span>
-                            <span>48 часов</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-icon">💰</span>
-                            <span>$60,000</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-icon">👥</span>
-                            <span>До 5 человек</span>
-                        </div>
-                    </div>
-                    <a href="registration.html" class="btn btn-primary btn-full">Присоединиться</a>
-                </div>
+            <div class="hackathons-grid" id="ongoing-hackathons">
+                <p>Загрузка...</p>
             </div>
         </section>
 
         <!-- Completed Hackathons -->
         <section class="hackathons-section" id="completed" style="display: none;">
             <h2 class="section-title">Завершённые Хакатоны</h2>
-            <div class="hackathons-grid">
-                <div class="hackathon-card">
-                    <div class="hackathon-badge completed">Завершён</div>
-                    <h3>Blockchain Innovation Challenge</h3>
-                    <p class="hackathon-org">Организатор: CryptoVentures</p>
-                    <p class="hackathon-desc">Разработайте децентрализованные приложения на блокчейне.</p>
-                    <div class="hackathon-details">
-                        <div class="detail-item">
-                            <span class="detail-icon">📅</span>
-                            <span>1-3 Февраля 2024</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-icon">⏱️</span>
-                            <span>48 часов</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-icon">💰</span>
-                            <span>$45,000</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-icon">👥</span>
-                            <span>120 участников</span>
-                        </div>
-                    </div>
-                    <button class="btn btn-secondary btn-full" disabled>Завершён</button>
-                </div>
-
-                <div class="hackathon-card">
-                    <div class="hackathon-badge completed">Завершён</div>
-                    <h3>HealthTech Solutions</h3>
-                    <p class="hackathon-org">Организатор: MedTech Inc</p>
-                    <p class="hackathon-desc">Создайте технологические решения для здравоохранения.</p>
-                    <div class="hackathon-details">
-                        <div class="detail-item">
-                            <span class="detail-icon">📅</span>
-                            <span>15-17 Февраля 2024</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-icon">⏱️</span>
-                            <span>36 часов</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-icon">💰</span>
-                            <span>$35,000</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-icon">👥</span>
-                            <span>95 участников</span>
-                        </div>
-                    </div>
-                    <button class="btn btn-secondary btn-full" disabled>Завершён</button>
-                </div>
-
-                <div class="hackathon-card">
-                    <div class="hackathon-badge completed">Завершён</div>
-                    <h3>EdTech Innovation Hack</h3>
-                    <p class="hackathon-org">Организатор: EduTech Solutions</p>
-                    <p class="hackathon-desc">Разработайте инновационные образовательные платформы.</p>
-                    <div class="hackathon-details">
-                        <div class="detail-item">
-                            <span class="detail-icon">📅</span>
-                            <span>22-24 Февраля 2024</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-icon">⏱️</span>
-                            <span>48 часов</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-icon">💰</span>
-                            <span>$30,000</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-icon">👥</span>
-                            <span>110 участников</span>
-                        </div>
-                    </div>
-                    <button class="btn btn-secondary btn-full" disabled>Завершён</button>
-                </div>
+            <div class="hackathons-grid" id="completed-hackathons">
+                <p>Загрузка...</p>
             </div>
         </section>
+
+        <!-- Participation Modal -->
+        <div id="participationModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h2>Участие в хакатоне</h2>
+                <div id="participationOptions">
+                    <div class="participation-option-buttons">
+                        <button class="btn btn-primary btn-large" onclick="showCreateTeamForm()">Создать команду</button>
+                        <button class="btn btn-secondary btn-large" onclick="showJoinTeamForm()">Присоединиться к команде</button>
+                    </div>
+                </div>
+                
+                <!-- Create Team Form -->
+                <form id="createTeamForm" style="display: none;">
+                    <input type="hidden" id="modalHackathonId">
+                    <div class="form-group">
+                        <label for="teamName">Название команды:</label>
+                        <input type="text" id="teamName" required placeholder="Введите название команды">
+                    </div>
+                    <div class="form-group">
+                        <label for="teamDescription">Описание команды:</label>
+                        <textarea id="teamDescription" rows="4" placeholder="Опишите вашу команду, навыки, цели и т.д."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeParticipationModal()">Отмена</button>
+                        <button type="submit" class="btn btn-primary">Создать команду</button>
+                    </div>
+                </form>
+                
+                <!-- Join Team Form -->
+                <form id="joinTeamForm" style="display: none;">
+                    <input type="hidden" id="joinHackathonId">
+                    <div class="form-group">
+                        <label for="teamCode">ID команды:</label>
+                        <input type="text" id="teamCode" placeholder="Введите ID команды (необязательно)">
+                        <small style="color: #666; display: block; margin-top: 0.5rem;">Оставьте пустым для автоматического присоединения</small>
+                    </div>
+                    <div id="availableTeamsList" style="display: none; margin-top: 1rem;">
+                        <label>Доступные команды:</label>
+                        <div id="teamsList"></div>
+                    </div>
+                    <div class="form-group" style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #e5e7eb;">
+                        <p style="margin-bottom: 1rem;">Или участвуйте без команды:</p>
+                        <button type="button" class="btn btn-secondary btn-full" onclick="joinAsFreeParticipant()">Участвовать без команды</button>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeParticipationModal()">Отмена</button>
+                        <button type="submit" class="btn btn-primary">Присоединиться к команде</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </main>
 
     <script src="/static/script.js"></script>
+    <style>
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 2rem;
+            border: 1px solid #888;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 10px;
+        }
+        .close-modal {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close-modal:hover {
+            color: #000;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        .btn-full {
+            width: 100%;
+        }
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+        .participation-info {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            background: #f0f9ff;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+        .participation-info strong {
+            color: #667eea;
+        }
+        .participation-option-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .btn-large {
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+        }
+        .team-item {
+            padding: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 5px;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .team-item:hover {
+            border-color: #667eea;
+            background: #f0f9ff;
+        }
+        .team-item.selected {
+            border-color: #667eea;
+            background: #e0e7ff;
+        }
+        .team-item.team-disabled {
+            opacity: 0.6;
+            cursor: not-allowed !important;
+            background: #f3f4f6;
+        }
+        .team-item.team-disabled:hover {
+            border-color: #e5e7eb;
+            background: #f3f4f6;
+        }
+    </style>
     <script>
+        let currentUser = null;
+        let userParticipations = {};
+
         // Update navigation on load
         if (typeof updateNavigation === 'function') {
             updateNavigation();
+        }
+
+        // Load current user and participations
+        async function loadUserData() {
+            try {
+                const response = await fetch('/api/user');
+                if (response.ok) {
+                    currentUser = await response.json();
+                    // Load user participations
+                    const participationsResponse = await fetch('/api/participations');
+                    if (participationsResponse.ok) {
+                        const participations = await participationsResponse.json();
+                        participations.forEach(p => {
+                            userParticipations[p.hackathon_id] = p;
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading user data:', error);
+            }
+        }
+
+        // Load hackathons
+        async function loadHackathons() {
+            try {
+                const [upcoming, ongoing, completed] = await Promise.all([
+                    fetch('/api/hackathons?status_filter=upcoming').then(r => r.json()),
+                    fetch('/api/hackathons?status_filter=ongoing').then(r => r.json()),
+                    fetch('/api/hackathons?status_filter=completed').then(r => r.json())
+                ]);
+
+                renderHackathons(upcoming, 'upcoming-hackathons', 'upcoming');
+                renderHackathons(ongoing, 'ongoing-hackathons', 'ongoing');
+                renderHackathons(completed, 'completed-hackathons', 'completed');
+            } catch (error) {
+                console.error('Error loading hackathons:', error);
+            }
+        }
+
+        function renderHackathons(hackathons, containerId, status) {
+            const container = document.getElementById(containerId);
+            if (hackathons.length === 0) {
+                container.innerHTML = '<p>Хакатоны не найдены</p>';
+                return;
+            }
+
+            container.innerHTML = hackathons.map(h => {
+                const startDate = new Date(h.start_date);
+                const endDate = new Date(h.end_date);
+                const participation = userParticipations[h.id];
+                const roleLabels = {
+                    'captain': 'Капитан',
+                    'team_member': 'Участник команды',
+                    'free_participant': 'Свободный участник',
+                    'expert': 'Эксперт'
+                };
+
+                let buttonHtml = '';
+                if (participation) {
+                    buttonHtml = `
+                        <div class="participation-info">
+                            <strong>Ваша роль:</strong> ${roleLabels[participation.role] || participation.role}<br>
+                            <strong>Репутация:</strong> ${participation.reputation}
+                        </div>
+                        <button class="btn btn-secondary btn-full" disabled>Вы уже участвуете</button>
+                    `;
+                } else if (status === 'completed') {
+                    buttonHtml = '<button class="btn btn-secondary btn-full" disabled>Завершён</button>';
+                } else if (currentUser) {
+                    buttonHtml = `<button class="btn btn-primary btn-full" onclick="openParticipationModal(${h.id})">Принять участие</button>`;
+                } else {
+                    buttonHtml = '<a href="login.html" class="btn btn-primary btn-full">Войти для участия</a>';
+                }
+
+                return `
+                    <div class="hackathon-card">
+                        <div class="hackathon-badge ${status}">${status === 'upcoming' ? 'Предстоящий' : status === 'ongoing' ? 'Идёт сейчас' : 'Завершён'}</div>
+                        <h3>${h.name}</h3>
+                        ${h.organizer ? `<p class="hackathon-org">Организатор: ${h.organizer}</p>` : ''}
+                        ${h.description ? `<p class="hackathon-desc">${h.description}</p>` : ''}
+                        <div class="hackathon-details">
+                            <div class="detail-item">
+                                <span class="detail-icon">📅</span>
+                                <span>${startDate.toLocaleDateString('ru-RU')} - ${endDate.toLocaleDateString('ru-RU')}</span>
+                            </div>
+                            ${h.duration_hours ? `
+                            <div class="detail-item">
+                                <span class="detail-icon">⏱️</span>
+                                <span>${h.duration_hours} часов</span>
+                            </div>
+                            ` : ''}
+                            ${h.prize_fund ? `
+                            <div class="detail-item">
+                                <span class="detail-icon">💰</span>
+                                <span>${h.prize_fund}</span>
+                            </div>
+                            ` : ''}
+                            ${h.max_team_size ? `
+                            <div class="detail-item">
+                                <span class="detail-icon">👥</span>
+                                <span>До ${h.max_team_size} человек</span>
+                            </div>
+                            ` : ''}
+                        </div>
+                        ${buttonHtml}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        let currentHackathonId = null;
+
+        function openParticipationModal(hackathonId) {
+            currentHackathonId = hackathonId;
+            document.getElementById('modalHackathonId').value = hackathonId;
+            document.getElementById('joinHackathonId').value = hackathonId;
+            document.getElementById('participationModal').style.display = 'block';
+            showParticipationOptions();
+        }
+
+        function showParticipationOptions() {
+            document.getElementById('participationOptions').style.display = 'block';
+            document.getElementById('createTeamForm').style.display = 'none';
+            document.getElementById('joinTeamForm').style.display = 'none';
+        }
+
+        function showCreateTeamForm() {
+            document.getElementById('participationOptions').style.display = 'none';
+            document.getElementById('createTeamForm').style.display = 'block';
+        }
+
+        async function showJoinTeamForm() {
+            document.getElementById('participationOptions').style.display = 'none';
+            document.getElementById('joinTeamForm').style.display = 'block';
+            
+            // Load available teams
+            try {
+                const response = await fetch(`/api/hackathons/${currentHackathonId}/teams`);
+                if (response.ok) {
+                    const teams = await response.json();
+                    const teamsList = document.getElementById('teamsList');
+                    if (teams.length > 0) {
+                        document.getElementById('availableTeamsList').style.display = 'block';
+                        teamsList.innerHTML = teams.map(team => {
+                            const isFull = team.max_team_size && team.member_count >= team.max_team_size;
+                            const isClosed = team.recruitment_closed || false;
+                            const canJoin = !isFull && !isClosed;
+                            
+                            return `
+                                <div class="team-item ${!canJoin ? 'team-disabled' : ''}" ${canJoin ? `onclick="selectTeam(${team.id}, '${team.name}')"` : ''} style="${!canJoin ? 'opacity: 0.6; cursor: not-allowed;' : ''}">
+                                    <strong>${team.name}</strong>
+                                    ${isClosed ? '<span style="color: #ef4444; font-size: 0.85rem; margin-left: 0.5rem;">[Набор закрыт]</span>' : ''}
+                                    ${isFull ? '<span style="color: #ef4444; font-size: 0.85rem; margin-left: 0.5rem;">[Команда заполнена]</span>' : ''}
+                                    <br>
+                                    ${team.description ? `<small style="color: #666; font-style: italic;">${team.description}</small><br>` : ''}
+                                    <small>Капитан: ${team.captain_fio || team.captain_username}</small><br>
+                                    <small>Участников: <strong>${team.member_count || 0}${team.max_team_size ? ` / ${team.max_team_size}` : ''}</strong></small>
+                                    ${isFull ? '<br><small style="color: #ef4444;">⚠️ Команда достигла максимального размера</small>' : ''}
+                                    ${isClosed ? '<br><small style="color: #ef4444;">⚠️ Набор в команду закрыт</small>' : ''}
+                                </div>
+                            `;
+                        }).join('');
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading teams:', error);
+            }
+        }
+
+        function selectTeam(teamId, teamName) {
+            document.getElementById('teamCode').value = teamId;
+            document.querySelectorAll('.team-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+        }
+
+        async function joinAsFreeParticipant() {
+            const hackathonId = parseInt(document.getElementById('joinHackathonId').value);
+
+            try {
+                const response = await fetch('/api/participations', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        hackathon_id: hackathonId,
+                        role: 'free_participant'
+                    })
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    alert('Вы успешно зарегистрировались на хакатон!');
+                    closeParticipationModal();
+                    await loadUserData();
+                    await loadHackathons();
+                } else {
+                    alert(result.detail || 'Ошибка регистрации');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Ошибка соединения с сервером');
+            }
+        }
+
+        function closeParticipationModal() {
+            document.getElementById('participationModal').style.display = 'none';
+            document.getElementById('createTeamForm').reset();
+            document.getElementById('joinTeamForm').reset();
+            document.getElementById('teamCode').value = '';
+            document.getElementById('availableTeamsList').style.display = 'none';
+            showParticipationOptions();
+        }
+
+        // Create Team form handler
+        document.getElementById('createTeamForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const hackathonId = parseInt(document.getElementById('modalHackathonId').value);
+            const teamName = document.getElementById('teamName').value;
+            const teamDescription = document.getElementById('teamDescription').value;
+
+            try {
+                const response = await fetch('/api/participations', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        hackathon_id: hackathonId,
+                        role: 'captain',
+                        team_name: teamName,
+                        team_description: teamDescription || null
+                    })
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    alert('Команда создана! Вы стали капитаном.');
+                    closeParticipationModal();
+                    await loadUserData();
+                    await loadHackathons();
+                } else {
+                    alert(result.detail || 'Ошибка создания команды');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Ошибка соединения с сервером');
+            }
+        });
+
+        // Join Team form handler
+        document.getElementById('joinTeamForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const hackathonId = parseInt(document.getElementById('joinHackathonId').value);
+            const teamCode = document.getElementById('teamCode').value;
+
+            // Check if team is full or closed before submitting
+            if (teamCode) {
+                try {
+                    const teamResponse = await fetch(`/api/hackathons/${hackathonId}/teams`);
+                    if (teamResponse.ok) {
+                        const teams = await teamResponse.json();
+                        const selectedTeam = teams.find(t => t.id == teamCode);
+                        if (selectedTeam) {
+                            const isFull = selectedTeam.max_team_size && selectedTeam.member_count >= selectedTeam.max_team_size;
+                            const isClosed = selectedTeam.recruitment_closed || false;
+                            
+                            if (isClosed) {
+                                alert('⚠️ Набор в эту команду закрыт. Выберите другую команду или участвуйте без команды.');
+                                return;
+                            }
+                            
+                            if (isFull) {
+                                alert(`⚠️ Команда "${selectedTeam.name}" достигла максимального размера (${selectedTeam.member_count}/${selectedTeam.max_team_size}). Выберите другую команду или участвуйте без команды.`);
+                                return;
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error checking team status:', error);
+                }
+            }
+
+            try {
+                const response = await fetch('/api/participations', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        hackathon_id: hackathonId,
+                        role: 'team_member',
+                        team_code: teamCode || null
+                    })
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    alert('Вы успешно присоединились к команде!');
+                    closeParticipationModal();
+                    await loadUserData();
+                    await loadHackathons();
+                } else {
+                    // Check if error is about team size
+                    if (result.detail && (result.detail.includes('максимального размера') || result.detail.includes('достигла'))) {
+                        alert(`⚠️ ${result.detail}\n\nПожалуйста, выберите другую команду или участвуйте без команды.`);
+                    } else {
+                        alert(result.detail || 'Ошибка присоединения к команде');
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Ошибка соединения с сервером');
+            }
+        });
+
+
+        // Close modal on X click
+        document.querySelector('.close-modal').addEventListener('click', closeParticipationModal);
+
+        // Close modal on outside click
+        window.onclick = function(event) {
+            const modal = document.getElementById('participationModal');
+            if (event.target === modal) {
+                closeParticipationModal();
+            }
         }
         
         // Filter functionality
@@ -380,8 +643,18 @@
                 const targetSection = document.getElementById(filter);
                 if (targetSection) {
                     targetSection.style.display = 'block';
+                    // Scroll to the section smoothly
+                    setTimeout(() => {
+                        targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 100);
                 }
             });
+        });
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', async () => {
+            await loadUserData();
+            await loadHackathons();
         });
     </script>
 </body>
