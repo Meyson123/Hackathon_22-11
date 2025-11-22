@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление хакатонами - Админ</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <style>
+        .admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .filter-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .filter-btn {
+            padding: 0.75rem 1.5rem;
+            border: 2px solid #e5e7eb;
+            background: white;
+            color: #374151;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .filter-btn:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        .hackathons-list {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .hackathon-item {
+            padding: 1.5rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+        }
+        .hackathon-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+        }
+        .hackathon-info h3 {
+            margin: 0 0 0.5rem 0;
+            color: #1f2937;
+        }
+        .hackathon-info p {
+            margin: 0.25rem 0;
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+        .hackathon-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+        .status-upcoming {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        .status-ongoing {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .status-completed {
+            background: #f3f4f6;
+            color: #374151;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 2rem;
+            border: 1px solid #888;
+            width: 90%;
+            max-width: 600px;
+            border-radius: 10px;
+        }
+        .close-modal {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close-modal:hover {
+            color: #000;
+        }
+        .message {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        .message.active {
+            display: block;
+        }
+        .message.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .message.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body>
+    <!-- Upper Navigation Hub -->
+    <nav class="top-nav">
+        <div class="nav-container">
+            <button class="menu-btn" id="menuBtn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="logo">
+                <h1>Хакатон Хаб - Админ</h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="/">Главная</a></li>
+                <li><a href="/admin.html">Панель администратора</a></li>
+                <li><a href="/admin-analytics.html">Аналитика</a></li>
+                <li><a href="/" id="logoutBtn">Выход</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="admin-container">
+            <div class="admin-header">
+                <h2 style="margin: 0; color: #667eea;">Управление хакатонами</h2>
+                <button class="btn btn-primary" onclick="showAddHackathonModal()">+ Добавить хакатон</button>
+            </div>
+
+            <div id="messageContainer"></div>
+
+            <div class="filter-tabs">
+                <button class="filter-btn active" data-filter="upcoming" onclick="filterHackathons('upcoming')">Предстоящие</button>
+                <button class="filter-btn" data-filter="ongoing" onclick="filterHackathons('ongoing')">Текущие</button>
+                <button class="filter-btn" data-filter="completed" onclick="filterHackathons('completed')">Завершённые</button>
+            </div>
+
+            <div class="hackathons-list">
+                <div id="hackathonsList">
+                    <p>Загрузка...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add/Edit Hackathon Modal -->
+    <div id="addHackathonModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeAddHackathonModal()">&times;</span>
+            <h2 id="hackathonModalTitle">Добавить хакатон</h2>
+            <form id="addHackathonForm">
+                <input type="hidden" id="hackathonId">
+                <div class="form-group">
+                    <label for="hackathonName">Название</label>
+                    <input type="text" id="hackathonName" required>
+                </div>
+                <div class="form-group">
+                    <label for="hackathonDescription">Описание</label>
+                    <textarea id="hackathonDescription" rows="4" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="hackathonOrganizer">Организатор</label>
+                    <input type="text" id="hackathonOrganizer">
+                </div>
+                <div class="form-group">
+                    <label for="hackathonStartDate">Дата начала</label>
+                    <input type="datetime-local" id="hackathonStartDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="hackathonEndDate">Дата окончания</label>
+                    <input type="datetime-local" id="hackathonEndDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="hackathonDuration">Длительность (часов)</label>
+                    <input type="number" id="hackathonDuration" min="1">
+                </div>
+                <div class="form-group">
+                    <label for="hackathonPrizeFund">Призовой фонд</label>
+                    <input type="text" id="hackathonPrizeFund" placeholder="например: $10,000">
+                </div>
+                <div class="form-group">
+                    <label for="hackathonMaxTeamSize">Максимальный размер команды</label>
+                    <input type="number" id="hackathonMaxTeamSize" min="1" value="5">
+                </div>
+                <div class="form-group">
+                    <label for="hackathonMinParticipants">Минимальное количество участников для публикации</label>
+                    <input type="number" id="hackathonMinParticipants" min="0" value="0">
+                    <small style="color: #6b7280; display: block; margin-top: 0.25rem;">Хакатон будет опубликован только при достижении этого количества участников</small>
+                </div>
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="checkbox" id="hackathonPublished" style="width: auto;">
+                        <span>Включить публикацию (хакатон будет виден в публичных списках)</span>
+                    </label>
+                    <small style="color: #6b7280; display: block; margin-top: 0.25rem;">По умолчанию хакатон создаётся как черновик</small>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeAddHackathonModal()">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Создать</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/static/script.js"></script>
+    <script>
+        let allHackathons = [];
+        let currentFilter = 'upcoming';
+
+        // Check admin auth
+        async function checkAdminAuth() {
+            try {
+                const response = await fetch('/api/user');
+                if (!response.ok) {
+                    window.location.href = '/admin-login.html';
+                    return;
+                }
+                const user = await response.json();
+                if (user.role !== 'admin') {
+                    window.location.href = '/admin-login.html';
+                    return;
+                }
+            } catch (error) {
+                window.location.href = '/admin-login.html';
+            }
+        }
+
+        function showMessage(text, type) {
+            const container = document.getElementById('messageContainer');
+            container.innerHTML = `<div class="message ${type} active">${text}</div>`;
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 3000);
+        }
+
+        async function loadHackathons() {
+            try {
+                const response = await fetch('/api/hackathons?admin_only=true');
+                if (response.ok) {
+                    allHackathons = await response.json();
+                    renderHackathons();
+                } else {
+                    showMessage('Ошибка загрузки хакатонов', 'error');
+                }
+            } catch (error) {
+                console.error('Error loading hackathons:', error);
+                showMessage('Ошибка соединения с сервером', 'error');
+            }
+        }
+
+        function filterHackathons(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-filter') === filter) {
+                    btn.classList.add('active');
+                }
+            });
+            renderHackathons();
+        }
+
+        function renderHackathons() {
+            const container = document.getElementById('hackathonsList');
+            let filtered = allHackathons;
+
+            const now = new Date();
+            if (currentFilter === 'upcoming') {
+                filtered = allHackathons.filter(h => new Date(h.start_date) > now);
+            } else if (currentFilter === 'ongoing') {
+                filtered = allHackathons.filter(h => {
+                    const start = new Date(h.start_date);
+                    const end = new Date(h.end_date);
+                    return start <= now && end >= now;
+                });
+            } else if (currentFilter === 'completed') {
+                filtered = allHackathons.filter(h => new Date(h.end_date) < now);
+            }
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<p>Хакатоны не найдены</p>';
+                return;
+            }
+
+            container.innerHTML = filtered.map(h => {
+                const startDate = new Date(h.start_date);
+                const endDate = new Date(h.end_date);
+                const now = new Date();
+                let status = 'upcoming';
+                let statusText = 'Предстоящий';
+                let canEdit = false;
+                if (startDate > now) {
+                    status = 'upcoming';
+                    statusText = 'Предстоящий';
+                    canEdit = true;
+                } else if (startDate <= now && endDate >= now) {
+                    status = 'ongoing';
+                    statusText = 'Текущий';
+                    canEdit = false;
+                } else if (endDate < now) {
+                    status = 'completed';
+                    statusText = 'Завершён';
+                    canEdit = false;
+                }
+
+                // Get participant count
+                let participantCount = 0;
+                if (h.participant_count !== undefined) {
+                    participantCount = h.participant_count;
+                }
+
+                const isPublished = h.published === 1 || h.published === true;
+                const minParticipants = h.min_participants || 0;
+
+                return `
+                    <div class="hackathon-item">
+                        <div class="hackathon-info">
+                            <h3>${h.name} <span class="status-badge status-${status}">${statusText}</span>
+                            ${!isPublished ? '<span class="status-badge" style="background: #fef3c7; color: #92400e; margin-left: 0.5rem;">Черновик</span>' : ''}
+                            </h3>
+                            <p>${h.description || 'Описание не указано'}</p>
+                            <p><strong>Организатор:</strong> ${h.organizer || 'Не указан'}</p>
+                            <p><strong>Даты:</strong> ${startDate.toLocaleDateString('ru-RU')} - ${endDate.toLocaleDateString('ru-RU')}</p>
+                            ${h.max_team_size ? `<p><strong>Макс. размер команды:</strong> ${h.max_team_size}</p>` : ''}
+                            <p><strong>Участников:</strong> ${participantCount}${minParticipants > 0 ? ` / ${minParticipants} (мин. для публикации)` : ''}</p>
+                            ${!isPublished ? `<p style="color: #ef4444;"><strong>Статус:</strong> Не опубликован (черновик)</p>` : '<p style="color: #10b981;"><strong>Статус:</strong> Опубликован</p>'}
+                        </div>
+                        <div class="hackathon-actions">
+                            ${canEdit ? `<button class="btn btn-secondary" onclick="editHackathon(${h.id})">Редактировать</button>` : ''}
+                            <a href="/admin-hackathon-details.html?hackathon_id=${h.id}" class="btn btn-primary">Детали</a>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function showAddHackathonModal() {
+            document.getElementById('hackathonModalTitle').textContent = 'Добавить хакатон';
+            document.getElementById('hackathonId').value = '';
+            document.getElementById('hackathonPublished').checked = false;
+            document.getElementById('addHackathonModal').style.display = 'block';
+        }
+
+        async function editHackathon(hackathonId) {
+            const hackathon = allHackathons.find(h => h.id === hackathonId);
+            if (!hackathon) {
+                showMessage('Хакатон не найден', 'error');
+                return;
+            }
+
+            document.getElementById('hackathonModalTitle').textContent = 'Редактировать хакатон';
+            document.getElementById('hackathonId').value = hackathonId;
+            document.getElementById('hackathonName').value = hackathon.name;
+            document.getElementById('hackathonDescription').value = hackathon.description || '';
+            document.getElementById('hackathonOrganizer').value = hackathon.organizer || '';
+            
+            // Format dates for datetime-local input
+            const startDate = new Date(hackathon.start_date);
+            const endDate = new Date(hackathon.end_date);
+            document.getElementById('hackathonStartDate').value = startDate.toISOString().slice(0, 16);
+            document.getElementById('hackathonEndDate').value = endDate.toISOString().slice(0, 16);
+            
+            document.getElementById('hackathonDuration').value = hackathon.duration_hours || '';
+            document.getElementById('hackathonPrizeFund').value = hackathon.prize_fund || '';
+            document.getElementById('hackathonMaxTeamSize').value = hackathon.max_team_size || 5;
+            document.getElementById('hackathonMinParticipants').value = hackathon.min_participants || 0;
+            document.getElementById('hackathonPublished').checked = hackathon.published === 1 || hackathon.published === true;
+            
+            document.getElementById('addHackathonModal').style.display = 'block';
+        }
+
+        function closeAddHackathonModal() {
+            document.getElementById('addHackathonModal').style.display = 'none';
+            document.getElementById('addHackathonForm').reset();
+            document.getElementById('hackathonId').value = '';
+        }
+
+        document.getElementById('addHackathonForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const startDate = new Date(document.getElementById('hackathonStartDate').value);
+            const endDate = new Date(document.getElementById('hackathonEndDate').value);
+            
+            if (endDate <= startDate) {
+                showMessage('Дата окончания должна быть позже даты начала', 'error');
+                return;
+            }
+
+            const hackathonId = document.getElementById('hackathonId').value;
+            const isEdit = hackathonId !== '';
+
+            const hackathonData = {
+                name: document.getElementById('hackathonName').value,
+                description: document.getElementById('hackathonDescription').value,
+                organizer: document.getElementById('hackathonOrganizer').value || null,
+                start_date: startDate.toISOString(),
+                end_date: endDate.toISOString(),
+                duration_hours: parseInt(document.getElementById('hackathonDuration').value) || null,
+                prize_fund: document.getElementById('hackathonPrizeFund').value || null,
+                max_team_size: parseInt(document.getElementById('hackathonMaxTeamSize').value) || null,
+                min_participants: parseInt(document.getElementById('hackathonMinParticipants').value) || 0,
+                published: document.getElementById('hackathonPublished').checked ? 1 : 0
+            };
+
+            try {
+                const url = isEdit ? `/api/hackathons/${hackathonId}` : '/api/hackathons';
+                const method = isEdit ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(hackathonData)
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    showMessage(isEdit ? 'Хакатон успешно обновлён!' : 'Хакатон успешно создан!', 'success');
+                    closeAddHackathonModal();
+                    await loadHackathons();
+                } else {
+                    showMessage(result.detail || (isEdit ? 'Ошибка обновления хакатона' : 'Ошибка создания хакатона'), 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('Ошибка соединения с сервером', 'error');
+            }
+        });
+
+        // Close modal on outside click
+        window.onclick = function(event) {
+            const modal = document.getElementById('addHackathonModal');
+            if (event.target === modal) {
+                closeAddHackathonModal();
+            }
+        }
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+            e.preventDefault();
+            try {
+                await fetch('/api/logout');
+                window.location.href = '/admin-login.html';
+            } catch (error) {
+                window.location.href = '/admin-login.html';
+            }
+        });
+
+        // Initialize
+        window.addEventListener('DOMContentLoaded', async () => {
+            await checkAdminAuth();
+            await loadHackathons();
+        });
+    </script>
+</body>
+</html>
+

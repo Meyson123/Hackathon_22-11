@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Детали хакатона - Админ</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <style>
+        .admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .admin-header {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        .section-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        .section-card h3 {
+            color: #667eea;
+            margin-top: 0;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 0.5rem;
+        }
+        .item-list {
+            margin-top: 1rem;
+        }
+        .item-card {
+            padding: 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .item-card:hover {
+            border-color: #667eea;
+        }
+        .item-info {
+            flex: 1;
+        }
+        .item-info h4 {
+            margin: 0 0 0.5rem 0;
+            color: #1f2937;
+        }
+        .item-info p {
+            margin: 0.25rem 0;
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+        .item-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 2rem;
+            border: 1px solid #888;
+            width: 90%;
+            max-width: 600px;
+            border-radius: 10px;
+        }
+        .close-modal {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close-modal:hover {
+            color: #000;
+        }
+        .message {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        .message.active {
+            display: block;
+        }
+        .message.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .message.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .confirm-modal {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .confirm-modal-content {
+            background-color: #fefefe;
+            margin: 20% auto;
+            padding: 2rem;
+            border: 1px solid #888;
+            width: 90%;
+            max-width: 400px;
+            border-radius: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <!-- Upper Navigation Hub -->
+    <nav class="top-nav">
+        <div class="nav-container">
+            <button class="menu-btn" id="menuBtn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="logo">
+                <h1>Хакатон Хаб - Админ</h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="/">Главная</a></li>
+                <li><a href="/admin.html">Панель администратора</a></li>
+                <li><a href="/admin-hackathons.html">Хакатоны</a></li>
+                <li><a href="/admin-analytics.html">Аналитика</a></li>
+                <li><a href="/" id="logoutBtn">Выход</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="admin-container">
+            <div class="admin-header">
+                <a href="/admin-hackathons.html" style="color: #667eea; text-decoration: none; margin-bottom: 1rem; display: inline-block;">← Назад к списку хакатонов</a>
+                <h2 id="hackathonName" style="margin: 0.5rem 0; color: #667eea;">Загрузка...</h2>
+                <p id="hackathonDescription" style="color: #6b7280; margin: 0.5rem 0;">Загрузка...</p>
+            </div>
+
+            <div id="messageContainer"></div>
+
+            <!-- Cases Section -->
+            <div class="section-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h3>Кейсы</h3>
+                    <button class="btn btn-primary" onclick="showAddCaseModal()">+ Добавить кейс</button>
+                </div>
+                <div id="casesList" class="item-list">
+                    <p>Загрузка...</p>
+                </div>
+            </div>
+
+            <!-- Case Holders Section -->
+            <div class="section-card">
+                <h3>Кейс-холдеры</h3>
+                <div id="caseHoldersList" class="item-list">
+                    <p>Загрузка...</p>
+                </div>
+            </div>
+
+            <!-- Experts/Jury Section -->
+            <div class="section-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h3>Эксперты / Жюри</h3>
+                    <button class="btn btn-primary" onclick="showAddExpertModal()">+ Добавить эксперта</button>
+                </div>
+                <div id="expertsList" class="item-list">
+                    <p>Загрузка...</p>
+                </div>
+            </div>
+
+            <!-- Teams Section -->
+            <div class="section-card">
+                <h3>Команды участников</h3>
+                <div id="teamsList" class="item-list">
+                    <p>Загрузка...</p>
+                </div>
+            </div>
+
+            <!-- Publish Regulations Button -->
+            <div class="section-card">
+                <h3>Публикация</h3>
+                <p>Опубликовать регламент и описание правил на главной странице</p>
+                <button class="btn btn-primary" onclick="publishRegulations()">Опубликовать регламент</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add Case Modal -->
+    <div id="addCaseModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeAddCaseModal()">&times;</span>
+            <h2>Добавить кейс</h2>
+            <form id="addCaseForm">
+                <div class="form-group">
+                    <label for="caseName">Название кейса</label>
+                    <input type="text" id="caseName" required>
+                </div>
+                <div class="form-group">
+                    <label for="caseDescription">Описание</label>
+                    <textarea id="caseDescription" rows="4" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="caseHolder">Кейс-холдер</label>
+                    <input type="text" id="caseHolder" required>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeAddCaseModal()">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Добавить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Expert Modal -->
+    <div id="addExpertModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeAddExpertModal()">&times;</span>
+            <h2>Добавить эксперта</h2>
+            <form id="addExpertForm">
+                <div class="form-group">
+                    <label for="expertName">Имя</label>
+                    <input type="text" id="expertName" required>
+                </div>
+                <div class="form-group">
+                    <label for="expertContact">Контакт (email или телефон)</label>
+                    <input type="text" id="expertContact" required>
+                </div>
+                <div class="form-group">
+                    <label for="expertRole">Роль</label>
+                    <input type="text" id="expertRole" placeholder="например: Эксперт по AI" required>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeAddExpertModal()">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Добавить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Confirm Delete Modal -->
+    <div id="confirmDeleteModal" class="confirm-modal">
+        <div class="confirm-modal-content">
+            <h3>Подтверждение удаления</h3>
+            <p id="confirmDeleteMessage">Вы уверены, что хотите удалить этот элемент?</p>
+            <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1.5rem;">
+                <button class="btn btn-secondary" onclick="closeConfirmDeleteModal()">Отмена</button>
+                <button class="btn btn-danger" id="confirmDeleteBtn">Удалить</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/script.js"></script>
+    <script>
+        let hackathonId = null;
+        let hackathonData = null;
+        let cases = []; // In-memory storage for cases (since no DB table)
+        let experts = [];
+
+        // Get hackathon ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        hackathonId = urlParams.get('hackathon_id');
+
+        // Check admin auth
+        async function checkAdminAuth() {
+            try {
+                const response = await fetch('/api/user');
+                if (!response.ok) {
+                    window.location.href = '/admin-login.html';
+                    return;
+                }
+                const user = await response.json();
+                if (user.role !== 'admin') {
+                    window.location.href = '/admin-login.html';
+                    return;
+                }
+            } catch (error) {
+                window.location.href = '/admin-login.html';
+            }
+        }
+
+        function showMessage(text, type) {
+            const container = document.getElementById('messageContainer');
+            container.innerHTML = `<div class="message ${type} active">${text}</div>`;
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 3000);
+        }
+
+        async function loadHackathon() {
+            if (!hackathonId) {
+                showMessage('ID хакатона не указан', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/hackathons/${hackathonId}`);
+                if (response.ok) {
+                    hackathonData = await response.json();
+                    document.getElementById('hackathonName').textContent = hackathonData.name;
+                    document.getElementById('hackathonDescription').textContent = hackathonData.description || 'Описание не указано';
+                    await loadTeams();
+                    await loadExperts();
+                    await loadCaseHolders();
+                } else {
+                    showMessage('Ошибка загрузки хакатона', 'error');
+                }
+            } catch (error) {
+                console.error('Error loading hackathon:', error);
+                showMessage('Ошибка соединения с сервером', 'error');
+            }
+        }
+
+        async function loadTeams() {
+            try {
+                const response = await fetch(`/api/hackathons/${hackathonId}/teams`);
+                if (response.ok) {
+                    const teams = await response.json();
+                    const container = document.getElementById('teamsList');
+                    if (teams.length === 0) {
+                        container.innerHTML = '<p>Команды не найдены</p>';
+                        return;
+                    }
+                    container.innerHTML = teams.map(team => `
+                        <div class="item-card">
+                            <div class="item-info">
+                                <h4>${team.name}</h4>
+                                <p>Капитан: ${team.captain_fio || team.captain_username}</p>
+                                <p>Участников: ${team.member_count || 0}${team.max_team_size ? ` / ${team.max_team_size}` : ''}</p>
+                            </div>
+                            <div class="item-actions">
+                                <button class="btn btn-danger" onclick="confirmDeleteTeam(${team.id}, '${team.name}')">Удалить</button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading teams:', error);
+            }
+        }
+
+        async function loadExperts() {
+            try {
+                // Load experts from participations with role='expert'
+                const response = await fetch(`/api/hackathons/${hackathonId}`);
+                // For now, we'll use a placeholder - in real implementation, you'd query participations
+                const container = document.getElementById('expertsList');
+                // This would need backend support to get experts
+                container.innerHTML = '<p>Эксперты будут загружены из участий с ролью "expert"</p>';
+            } catch (error) {
+                console.error('Error loading experts:', error);
+            }
+        }
+
+        async function loadCaseHolders() {
+            try {
+                // Load case holders - would need backend support
+                const container = document.getElementById('caseHoldersList');
+                container.innerHTML = '<p>Кейс-холдеры будут загружены из базы данных</p>';
+            } catch (error) {
+                console.error('Error loading case holders:', error);
+            }
+        }
+
+        function showAddCaseModal() {
+            document.getElementById('addCaseModal').style.display = 'block';
+        }
+
+        function closeAddCaseModal() {
+            document.getElementById('addCaseModal').style.display = 'none';
+            document.getElementById('addCaseForm').reset();
+        }
+
+        function showAddExpertModal() {
+            document.getElementById('addExpertModal').style.display = 'block';
+        }
+
+        function closeAddExpertModal() {
+            document.getElementById('addExpertModal').style.display = 'none';
+            document.getElementById('addExpertForm').reset();
+        }
+
+        function confirmDeleteTeam(teamId, teamName) {
+            document.getElementById('confirmDeleteMessage').textContent = `Вы уверены, что хотите удалить команду "${teamName}"? Это действие нельзя отменить.`;
+            document.getElementById('confirmDeleteModal').style.display = 'block';
+            document.getElementById('confirmDeleteBtn').onclick = () => deleteTeam(teamId);
+        }
+
+        function closeConfirmDeleteModal() {
+            document.getElementById('confirmDeleteModal').style.display = 'none';
+        }
+
+        async function deleteTeam(teamId) {
+            try {
+                // Note: This would need a DELETE endpoint for teams
+                showMessage('Удаление команды требует добавления API endpoint', 'error');
+                closeConfirmDeleteModal();
+                // await loadTeams();
+            } catch (error) {
+                console.error('Error deleting team:', error);
+                showMessage('Ошибка удаления команды', 'error');
+            }
+        }
+
+        function publishRegulations() {
+            if (confirm('Опубликовать регламент на главной странице?')) {
+                showMessage('Регламент опубликован! (Требует реализации backend)', 'success');
+            }
+        }
+
+        document.getElementById('addCaseForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const caseData = {
+                name: document.getElementById('caseName').value,
+                description: document.getElementById('caseDescription').value,
+                holder: document.getElementById('caseHolder').value
+            };
+            cases.push(caseData);
+            showMessage('Кейс добавлен! (Требует реализации backend для сохранения)', 'success');
+            closeAddCaseModal();
+            // Refresh cases list
+            const container = document.getElementById('casesList');
+            container.innerHTML = cases.map((c, i) => `
+                <div class="item-card">
+                    <div class="item-info">
+                        <h4>${c.name}</h4>
+                        <p>${c.description}</p>
+                        <p><strong>Кейс-холдер:</strong> ${c.holder}</p>
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn btn-danger" onclick="cases.splice(${i}, 1); loadHackathon();">Удалить</button>
+                    </div>
+                </div>
+            `).join('') || '<p>Кейсы не добавлены</p>';
+        });
+
+        document.getElementById('addExpertForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const expertData = {
+                name: document.getElementById('expertName').value,
+                contact: document.getElementById('expertContact').value,
+                role: document.getElementById('expertRole').value
+            };
+            experts.push(expertData);
+            showMessage('Эксперт добавлен! (Требует реализации backend для сохранения)', 'success');
+            closeAddExpertModal();
+            // Refresh experts list
+            const container = document.getElementById('expertsList');
+            container.innerHTML = experts.map((e, i) => `
+                <div class="item-card">
+                    <div class="item-info">
+                        <h4>${e.name}</h4>
+                        <p><strong>Контакт:</strong> ${e.contact}</p>
+                        <p><strong>Роль:</strong> ${e.role}</p>
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn btn-danger" onclick="experts.splice(${i}, 1); loadExperts();">Удалить</button>
+                    </div>
+                </div>
+            `).join('') || '<p>Эксперты не добавлены</p>';
+        });
+
+        // Close modals on outside click
+        window.onclick = function(event) {
+            const modals = ['addCaseModal', 'addExpertModal', 'confirmDeleteModal'];
+            modals.forEach(modalId => {
+                const modal = document.getElementById(modalId);
+                if (event.target === modal) {
+                    if (modalId === 'addCaseModal') closeAddCaseModal();
+                    else if (modalId === 'addExpertModal') closeAddExpertModal();
+                    else if (modalId === 'confirmDeleteModal') closeConfirmDeleteModal();
+                }
+            });
+        }
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+            e.preventDefault();
+            try {
+                await fetch('/api/logout');
+                window.location.href = '/admin-login.html';
+            } catch (error) {
+                window.location.href = '/admin-login.html';
+            }
+        });
+
+        // Initialize
+        window.addEventListener('DOMContentLoaded', async () => {
+            await checkAdminAuth();
+            await loadHackathon();
+        });
+    </script>
+</body>
+</html>
+

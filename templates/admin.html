@@ -4,7 +4,67 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Панель администратора - Хакатон Хаб</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="/static/styles.css">
+    <style>
+        .admin-dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .admin-nav {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .admin-nav-links {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .admin-nav-links a {
+            padding: 0.75rem 1.5rem;
+            background: #f3f4f6;
+            color: #374151;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .admin-nav-links a:hover,
+        .admin-nav-links a.active {
+            background: #667eea;
+            color: white;
+        }
+        .admin-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .stat-card h3 {
+            color: #667eea;
+            margin-top: 0;
+            font-size: 1.1rem;
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #1f2937;
+            margin: 0.5rem 0;
+        }
+        .stat-label {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+    </style>
 </head>
 <body>
     <!-- Upper Navigation Hub -->
@@ -20,188 +80,149 @@
             </div>
             <ul class="nav-links">
                 <li><a href="/">Главная</a></li>
-                <li><a href="hackathons.html">Хакатоны</a></li>
-                <li><a href="about.html">О нас</a></li>
+                <li><a href="/admin.html" class="active">Панель администратора</a></li>
+                <li><a href="/admin-analytics.html">Аналитика</a></li>
                 <li><a href="/" id="logoutBtn">Выход</a></li>
             </ul>
         </div>
     </nav>
 
-    <!-- Sidebar Hub -->
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <h2>Информационный Хаб</h2>
-            <button class="close-btn" id="closeBtn">&times;</button>
-        </div>
-        <div class="sidebar-content">
-            <div class="hub-section" id="participantsSection">
-                <h3>Участники</h3>
-                <div class="info-card">
-                    <p><strong>Всего участников:</strong> <span id="statTotalUsers">-</span></p>
-                    <p><strong>Активных сейчас:</strong> 89</p>
-                    <p><strong>Зарегистрировано в этом месяце:</strong> <span id="statUsersThisMonth">-</span></p>
-                </div>
-            </div>
-            <div class="hub-section" id="hackathonsSection">
-                <h3>Хакатоны</h3>
-                <div class="info-card">
-                    <p><strong>Предстоящие:</strong> 12</p>
-                    <p><strong>Текущие:</strong> 3</p>
-                    <p><strong>Завершённые:</strong> 45</p>
-                </div>
-            </div>
-            <div class="hub-section" id="coursesSection">
-                <h3>Интенсивные Курсы</h3>
-                <div class="info-card">
-                    <p><strong>Доступных курсов:</strong> 8</p>
-                    <p><strong>Записанных студентов:</strong> 567</p>
-                    <p><strong>Процент завершения:</strong> 78%</p>
-                </div>
-            </div>
-            <div class="hub-section" id="organizationsSection">
-                <h3>Организации</h3>
-                <div class="info-card">
-                    <p><strong>Всего организаций:</strong> 24</p>
-                    <p><strong>Активных партнёров:</strong> 18</p>
-                    <p><strong>Опубликовано хакатонов:</strong> 67</p>
-                </div>
-            </div>
-            <div class="hub-section" id="statisticsSection">
-                <h3>Статистика</h3>
-                <div class="info-card">
-                    <p><strong>Всего проектов:</strong> 890</p>
-                    <p><strong>Процент успеха:</strong> 82%</p>
-                    <p><strong>Средний размер команды:</strong> 4.2</p>
-                    <p><strong>Призовой фонд:</strong> $125,000</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Overlay -->
-    <div class="overlay" id="overlay"></div>
-
     <!-- Main Content -->
     <main class="main-content">
-        <div class="hero-section">
-            <h2>Панель администратора</h2>
-            <p>Управление пользователями и настройками системы</p>
-        </div>
-
-        <!-- Admin Settings -->
-        <section class="admin-section">
-            <h2 class="section-title">Настройки системы</h2>
-            <div class="admin-settings-grid">
-                <div class="admin-card">
-                    <h3>Статистика пользователей</h3>
-                    <div class="stat-item">
-                        <span>Всего пользователей:</span>
-                        <strong id="statTotal">-</strong>
-                    </div>
-                    <div class="stat-item">
-                        <span>Администраторов:</span>
-                        <strong id="statAdmins">-</strong>
-                    </div>
-                    <div class="stat-item">
-                        <span>Обычных пользователей:</span>
-                        <strong id="statUsers">-</strong>
-                    </div>
-                    <div class="stat-item">
-                        <span>Зарегистрировано в этом месяце:</span>
-                        <strong id="statMonth">-</strong>
-                    </div>
-                    <button class="btn btn-primary" onclick="loadStatistics()">Обновить</button>
-                </div>
-
-                <div class="admin-card">
-                    <h3>Информация о сессии</h3>
-                    <div class="session-info">
-                        <p><strong>Текущий пользователь:</strong> <span id="currentUser">-</span></p>
-                        <p><strong>Роль:</strong> <span id="currentRole">-</span></p>
-                        <p><strong>Email:</strong> <span id="currentEmail">-</span></p>
-                        <p><strong>ID пользователя:</strong> <span id="currentUserId">-</span></p>
-                        <p><strong>Дата регистрации:</strong> <span id="currentUserCreated">-</span></p>
-                    </div>
-                    <div class="session-actions">
-                        <button class="btn btn-secondary" onclick="clearSession()">Очистить сессию</button>
-                        <button class="btn btn-primary" onclick="refreshSession()">Обновить сессию</button>
-                    </div>
-                </div>
-                
-                <div class="admin-card">
-                    <h3>Настройки системы</h3>
-                    <div class="settings-list">
-                        <div class="setting-item">
-                            <label>
-                                <input type="checkbox" id="autoRefresh" checked>
-                                <span>Автообновление статистики</span>
-                            </label>
-                        </div>
-                        <div class="setting-item">
-                            <label>
-                                <input type="checkbox" id="showDeletedUsers">
-                                <span>Показывать удалённых пользователей</span>
-                            </label>
-                        </div>
-                        <div class="setting-item">
-                            <label>
-                                <span>Интервал обновления (сек):</span>
-                                <input type="number" id="refreshInterval" value="30" min="10" max="300">
-                            </label>
-                        </div>
-                    </div>
-                    <button class="btn btn-primary" onclick="saveSettings()">Сохранить настройки</button>
+        <div class="admin-dashboard">
+            <div class="admin-nav">
+                <h2 style="margin-bottom: 15px; color: #667eea;">Панель управления</h2>
+                <div class="admin-nav-links">
+                    <a href="/admin-hackathons.html" class="active">Хакатоны</a>
+                    <a href="/admin-webinars.html">Вебинары</a>
+                    <a href="/admin-analytics.html">Аналитика</a>
                 </div>
             </div>
-        </section>
 
-        <!-- Users Management -->
-        <section class="admin-section">
-            <h2 class="section-title">Управление пользователями</h2>
-            <div class="users-controls">
-                <button class="btn btn-primary" onclick="loadUsers()">Обновить список</button>
-                <button class="btn btn-secondary" onclick="showAddUserForm()">Добавить пользователя</button>
+            <div class="admin-stats">
+                <div class="stat-card">
+                    <h3>Всего пользователей</h3>
+                    <div class="stat-value" id="statTotalUsers">-</div>
+                    <div class="stat-label">Зарегистрировано</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Хакатоны</h3>
+                    <div class="stat-value" id="statTotalHackathons">-</div>
+                    <div class="stat-label">Всего мероприятий</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Активные команды</h3>
+                    <div class="stat-value" id="statTotalTeams">-</div>
+                    <div class="stat-label">В текущих хакатонах</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Эксперты</h3>
+                    <div class="stat-value" id="statTotalExperts">-</div>
+                    <div class="stat-label">Активных экспертов</div>
+                </div>
             </div>
-            <div id="usersList" class="users-list"></div>
-        </section>
 
-        <!-- Add User Modal -->
-        <div id="addUserModal" class="modal" style="display: none;">
-            <div class="modal-content">
-                <span class="close-modal" onclick="closeAddUserForm()">&times;</span>
-                <h2>Добавить пользователя</h2>
-                <form id="addUserForm" class="registration-form">
-                    <div class="form-group">
-                        <label for="addEmail">Email</label>
-                        <input type="email" id="addEmail" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="addPassword">Пароль</label>
-                        <input type="password" id="addPassword" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="addFullName">Полное имя</label>
-                        <input type="text" id="addFullName" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="addPhone">Телефон</label>
-                        <input type="tel" id="addPhone" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="addRole">Роль</label>
-                        <select id="addRole" required>
-                            <option value="user">Пользователь</option>
-                            <option value="admin">Администратор</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-primary btn-full">Добавить</button>
-                </form>
+            <div style="background: white; border-radius: 10px; padding: 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                <h2 style="margin-top: 0; color: #667eea;">Быстрые действия</h2>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <a href="/admin-hackathons.html" class="btn btn-primary">Управление хакатонами</a>
+                    <a href="/admin-webinars.html" class="btn btn-secondary">Управление вебинарами</a>
+                    <a href="/admin-analytics.html" class="btn btn-secondary">Просмотр аналитики</a>
+                </div>
             </div>
         </div>
     </main>
 
-    <script src="script.js"></script>
-    <script src="admin.js"></script>
+    <script src="/static/script.js"></script>
+    <script>
+        // Check admin auth
+        async function checkAdminAuth() {
+            try {
+                const response = await fetch('/api/user');
+                if (!response.ok) {
+                    window.location.href = '/admin-login.html';
+                    return;
+                }
+                const user = await response.json();
+                if (user.role !== 'admin') {
+                    window.location.href = '/admin-login.html';
+                    return;
+                }
+            } catch (error) {
+                window.location.href = '/admin-login.html';
+            }
+        }
+
+        // Load statistics
+        async function loadStatistics() {
+            try {
+                const [statsResponse, hackathonsResponse] = await Promise.all([
+                    fetch('/api/statistics'),
+                    fetch('/api/hackathons')
+                ]);
+
+                if (statsResponse.ok) {
+                    const stats = await statsResponse.json();
+                    document.getElementById('statTotalUsers').textContent = stats.totalUsers || 0;
+                }
+
+                if (hackathonsResponse.ok) {
+                    const hackathons = await hackathonsResponse.json();
+                    document.getElementById('statTotalHackathons').textContent = hackathons.length || 0;
+                }
+
+                // Load teams count
+                try {
+                    const teamsResponse = await fetch('/api/hackathons');
+                    if (teamsResponse.ok) {
+                        const hackathons = await teamsResponse.json();
+                        let totalTeams = 0;
+                        for (const hackathon of hackathons) {
+                            const teamsResponse = await fetch(`/api/hackathons/${hackathon.id}/teams`);
+                            if (teamsResponse.ok) {
+                                const teams = await teamsResponse.json();
+                                totalTeams += teams.length;
+                            }
+                        }
+                        document.getElementById('statTotalTeams').textContent = totalTeams;
+                    }
+                } catch (error) {
+                    console.error('Error loading teams:', error);
+                }
+
+                // Load experts count
+                try {
+                    const usersResponse = await fetch('/api/users');
+                    if (usersResponse.ok) {
+                        const users = await usersResponse.json();
+                        const experts = users.filter(u => u.role === 'expert');
+                        document.getElementById('statTotalExperts').textContent = experts.length;
+                    }
+                } catch (error) {
+                    console.error('Error loading experts:', error);
+                }
+            } catch (error) {
+                console.error('Error loading statistics:', error);
+            }
+        }
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+            e.preventDefault();
+            try {
+                await fetch('/api/logout');
+                window.location.href = '/admin-login.html';
+            } catch (error) {
+                window.location.href = '/admin-login.html';
+            }
+        });
+
+        // Initialize
+        window.addEventListener('DOMContentLoaded', async () => {
+            await checkAdminAuth();
+            await loadStatistics();
+            setInterval(loadStatistics, 60000); // Refresh every minute
+        });
+    </script>
 </body>
 </html>
-

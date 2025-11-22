@@ -93,29 +93,6 @@ def init_database():
         )
     ''')
 
-    # Создание администратора по умолчанию, если его нет
-    cursor.execute("SELECT * FROM Users WHERE role='admin'")
-    if not cursor.fetchone():
-        admin_user = {
-            "username": "admin",
-            "email": "admin@example.com",
-            "password": "admin123",  # Пароль в открытом виде
-            "fio": "Administrator",
-            "telegram_nickname": "@admin",
-            "basics_knowledge": "management,organization",
-            "city": "Moscow",
-            "role": "admin",
-            "created_at": datetime.now().isoformat()
-        }
-        cursor.execute('''
-            INSERT INTO Users (username, email, password, fio, telegram_nickname, basics_knowledge, city, role, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (
-            admin_user["username"], admin_user["email"], admin_user["password"],
-            admin_user["fio"], admin_user["telegram_nickname"], admin_user["basics_knowledge"],
-            admin_user["city"], admin_user["role"], admin_user["created_at"]
-        ))
-
     # Добавляем примеры хакатонов для тестирования (если их нет)
     cursor.execute("SELECT COUNT(*) FROM Hackathons")
     if cursor.fetchone()[0] == 0:

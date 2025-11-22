@@ -70,6 +70,8 @@ class HackathonCreate(BaseModel):
     prize_fund: Optional[str] = None
     max_team_size: Optional[int] = None
     status: str = "upcoming"
+    min_participants: Optional[int] = 0
+    published: Optional[int] = 0
 
 
 class ParticipationCreate(BaseModel):
@@ -98,6 +100,29 @@ class TeamUpdate(BaseModel):
 
 # Инициализация БД
 init_database()
+
+# Миграция: добавляем колонки min_participants и published если их нет
+def migrate_hackathons_table():
+    """Добавление новых колонок в таблицу Hackathons если их нет"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("PRAGMA table_info(Hackathons)")
+        columns = [column[1] for column in cursor.fetchall()]
+        
+        if 'min_participants' not in columns:
+            cursor.execute("ALTER TABLE Hackathons ADD COLUMN min_participants INTEGER DEFAULT 0")
+            conn.commit()
+        
+        if 'published' not in columns:
+            cursor.execute("ALTER TABLE Hackathons ADD COLUMN published INTEGER DEFAULT 0")
+            conn.commit()
+    except Exception as e:
+        print(f"Migration warning: {e}")
+    finally:
+        conn.close()
+
+migrate_hackathons_table()
 
 
 # Роуты страниц
@@ -643,10 +668,54 @@ async def update_user(user_id: int, user_data: dict, request: Request, admin=Dep
 
 # ========== Hackathons API (код друга) ==========
 @app.get("/api/hackathons")
-async def get_hackathons_api(request: Request, status_filter: Optional[str] = None):
+async def get_hackathons_api(request: Request, status_filter: Optional[str] = None, admin_only: Optional[bool] = False):
     """Получение списка хакатонов (версия друга)"""
+    user = get_current_user(request)
+    is_admin = user and user.get("role") == "admin"
+    
+    # For admin pages, return all hackathons with participant counts
+    if admin_only or (is_admin and "/admin" in str(request.url)):
+        hackathons = get_all_hackathons(status_filter)
+        # Add participant counts
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        for hackathon in hackathons:
+            cursor.execute("SELECT COUNT(*) FROM Participations WHERE hackathon_id = ?", (hackathon["id"],))
+            hackathon["participant_count"] = cursor.fetchone()[0]
+        conn.close()
+        return hackathons
+    
+    # For public endpoints, only return published hackathons that meet minimum participants
     hackathons = get_all_hackathons(status_filter)
-    return hackathons
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    # Check if published column exists
+    cursor.execute("PRAGMA table_info(Hackathons)")
+    columns = [column[1] for column in cursor.fetchall()]
+    has_published = 'published' in columns
+    has_min_participants = 'min_participants' in columns
+    
+    filtered_hackathons = []
+    for hackathon in hackathons:
+        # Count participants
+        cursor.execute("SELECT COUNT(*) FROM Participations WHERE hackathon_id = ?", (hackathon["id"],))
+        participant_count = cursor.fetchone()[0]
+        
+        # Check publication status
+        if has_published and has_min_participants:
+            published = hackathon.get("published", 0) or 0
+            min_participants = hackathon.get("min_participants", 0) or 0
+            
+            # Only include if published AND min participants reached
+            if published == 1 and participant_count >= min_participants:
+                filtered_hackathons.append(hackathon)
+        else:
+            # If columns don't exist, show all (backward compatibility)
+            filtered_hackathons.append(hackathon)
+    
+    conn.close()
+    return filtered_hackathons
 
 
 @app.get("/api/hackathons/{hackathon_id}")
@@ -665,21 +734,100 @@ async def create_hackathon(hackathon_data: HackathonCreate, request: Request, ad
     cursor = conn.cursor()
 
     now = datetime.now().isoformat()
-    cursor.execute('''
-        INSERT INTO Hackathons (name, description, organizer, start_date, end_date, 
-                               duration_hours, prize_fund, max_team_size, status, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (
-        hackathon_data.name, hackathon_data.description, hackathon_data.organizer,
-        hackathon_data.start_date, hackathon_data.end_date, hackathon_data.duration_hours,
-        hackathon_data.prize_fund, hackathon_data.max_team_size, hackathon_data.status, now
-    ))
+    # Check if columns exist
+    cursor.execute("PRAGMA table_info(Hackathons)")
+    columns = [column[1] for column in cursor.fetchall()]
+    has_min_participants = 'min_participants' in columns
+    has_published = 'published' in columns
+
+    if has_min_participants and has_published:
+        cursor.execute('''
+            INSERT INTO Hackathons (name, description, organizer, start_date, end_date, 
+                                   duration_hours, prize_fund, max_team_size, status, 
+                                   min_participants, published, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            hackathon_data.name, hackathon_data.description, hackathon_data.organizer,
+            hackathon_data.start_date, hackathon_data.end_date, hackathon_data.duration_hours,
+            hackathon_data.prize_fund, hackathon_data.max_team_size, hackathon_data.status,
+            hackathon_data.min_participants or 0, hackathon_data.published or 0, now
+        ))
+    else:
+        cursor.execute('''
+            INSERT INTO Hackathons (name, description, organizer, start_date, end_date, 
+                                   duration_hours, prize_fund, max_team_size, status, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            hackathon_data.name, hackathon_data.description, hackathon_data.organizer,
+            hackathon_data.start_date, hackathon_data.end_date, hackathon_data.duration_hours,
+            hackathon_data.prize_fund, hackathon_data.max_team_size, hackathon_data.status, now
+        ))
 
     hackathon_id = cursor.lastrowid
     conn.commit()
     conn.close()
 
     return {"message": "Хакатон создан", "hackathon_id": hackathon_id}
+
+@app.put("/api/hackathons/{hackathon_id}")
+async def update_hackathon(hackathon_id: int, hackathon_data: HackathonCreate, request: Request, admin=Depends(require_admin)):
+    """Обновление хакатона (только для администраторов, только предстоящие)"""
+    user = get_current_user(request)
+    if not user or user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Требуются права администратора")
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    # Check if hackathon exists and is upcoming
+    cursor.execute("SELECT * FROM Hackathons WHERE id = ?", (hackathon_id,))
+    hackathon = cursor.fetchone()
+    if not hackathon:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Хакатон не найден")
+    
+    hackathon_dict = dict(hackathon)
+    start_date = datetime.fromisoformat(hackathon_dict["start_date"])
+    if start_date <= datetime.now():
+        conn.close()
+        raise HTTPException(status_code=400, detail="Можно редактировать только предстоящие хакатоны")
+    
+    # Check if columns exist
+    cursor.execute("PRAGMA table_info(Hackathons)")
+    columns = [column[1] for column in cursor.fetchall()]
+    has_min_participants = 'min_participants' in columns
+    has_published = 'published' in columns
+    
+    if has_min_participants and has_published:
+        cursor.execute('''
+            UPDATE Hackathons 
+            SET name = ?, description = ?, organizer = ?, start_date = ?, end_date = ?,
+                duration_hours = ?, prize_fund = ?, max_team_size = ?, status = ?,
+                min_participants = ?, published = ?
+            WHERE id = ?
+        ''', (
+            hackathon_data.name, hackathon_data.description, hackathon_data.organizer,
+            hackathon_data.start_date, hackathon_data.end_date, hackathon_data.duration_hours,
+            hackathon_data.prize_fund, hackathon_data.max_team_size, hackathon_data.status,
+            hackathon_data.min_participants or 0, hackathon_data.published or 0, hackathon_id
+        ))
+    else:
+        cursor.execute('''
+            UPDATE Hackathons 
+            SET name = ?, description = ?, organizer = ?, start_date = ?, end_date = ?,
+                duration_hours = ?, prize_fund = ?, max_team_size = ?, status = ?
+            WHERE id = ?
+        ''', (
+            hackathon_data.name, hackathon_data.description, hackathon_data.organizer,
+            hackathon_data.start_date, hackathon_data.end_date, hackathon_data.duration_hours,
+            hackathon_data.prize_fund, hackathon_data.max_team_size, hackathon_data.status,
+            hackathon_id
+        ))
+    
+    conn.commit()
+    conn.close()
+    
+    return {"message": "Хакатон обновлён"}
 
 
 # ========== Participations API (код друга) ==========
