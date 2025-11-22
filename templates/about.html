@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>О нас - Хакатон Хаб</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <!-- Upper Navigation Hub -->
+    <nav class="top-nav">
+        <div class="nav-container">
+            <button class="menu-btn" id="menuBtn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="logo">
+                <h1>Хакатон Хаб</h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="/">Главная</a></li>
+                <li><a href="registration.html" id="registerLink">Регистрация</a></li>
+                <li><a href="hackathons.html">Хакатоны</a></li>
+                <li><a href="about.html" class="active">О нас</a></li>
+                <li><a href="profile.html" id="profileLink" style="display: none;">Профиль</a></li>
+                <li><a href="login.html" id="loginLink">Вход</a></li>
+                <li><a href="#" id="logoutLink" style="display: none;">Выход</a></li>
+                <li><a href="admin.html" id="adminLink" style="display: none;">Админ</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Sidebar Hub -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>Информационный Хаб</h2>
+            <button class="close-btn" id="closeBtn">&times;</button>
+        </div>
+        <div class="sidebar-content">
+            <div class="hub-section" id="participantsSection">
+                <h3>Участники</h3>
+                <div class="info-card">
+                    <p><strong>Всего участников:</strong> 1,234</p>
+                    <p><strong>Активных сейчас:</strong> 89</p>
+                    <p><strong>Зарегистрировано в этом месяце:</strong> 156</p>
+                </div>
+            </div>
+            <div class="hub-section" id="hackathonsSection">
+                <h3>Хакатоны</h3>
+                <div class="info-card">
+                    <p><strong>Предстоящие:</strong> 12</p>
+                    <p><strong>Текущие:</strong> 3</p>
+                    <p><strong>Завершённые:</strong> 45</p>
+                </div>
+            </div>
+            <div class="hub-section" id="coursesSection">
+                <h3>Интенсивные Курсы</h3>
+                <div class="info-card">
+                    <p><strong>Доступных курсов:</strong> 8</p>
+                    <p><strong>Записанных студентов:</strong> 567</p>
+                    <p><strong>Процент завершения:</strong> 78%</p>
+                </div>
+            </div>
+            <div class="hub-section" id="organizationsSection">
+                <h3>Организации</h3>
+                <div class="info-card">
+                    <p><strong>Всего организаций:</strong> 24</p>
+                    <p><strong>Активных партнёров:</strong> 18</p>
+                    <p><strong>Опубликовано хакатонов:</strong> 67</p>
+                </div>
+            </div>
+            <div class="hub-section" id="statisticsSection">
+                <h3>Статистика</h3>
+                <div class="info-card">
+                    <p><strong>Всего проектов:</strong> 890</p>
+                    <p><strong>Процент успеха:</strong> 82%</p>
+                    <p><strong>Средний размер команды:</strong> 4.2</p>
+                    <p><strong>Призовой фонд:</strong> $125,000</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="hero-section">
+            <h2>О нас</h2>
+            <p>Мы создаём платформу для развития талантов и инноваций</p>
+        </div>
+
+        <!-- About Section -->
+        <section class="about-section">
+            <div class="about-content">
+                <h2 class="section-title">Кто мы такие</h2>
+                <p class="about-text">
+                    Хакатон Хаб — это ведущая платформа для проведения хакатонов и интенсивных образовательных курсов. 
+                    Мы объединяем талантливых разработчиков, инноваторов и организации для создания технологических решений, 
+                    которые меняют мир к лучшему.
+                </p>
+                <p class="about-text">
+                    С 2020 года мы провели более 60 успешных хакатонов, в которых приняли участие тысячи разработчиков 
+                    со всего мира. Наша миссия — предоставить каждому возможность реализовать свой потенциал и создать 
+                    что-то удивительное.
+                </p>
+            </div>
+        </section>
+
+        <!-- Mission & Values -->
+        <section class="mission-section">
+            <div class="mission-grid">
+                <div class="mission-card">
+                    <div class="mission-icon">🎯</div>
+                    <h3>Наша Миссия</h3>
+                    <p>Создавать возможности для развития технологических талантов и способствовать инновациям через 
+                    организацию качественных хакатонов и образовательных программ.</p>
+                </div>
+                <div class="mission-card">
+                    <div class="mission-icon">💡</div>
+                    <h3>Наше Видение</h3>
+                    <p>Стать крупнейшей платформой для технологических соревнований и обучения, где каждый может 
+                    найти свой путь к успеху в IT-индустрии.</p>
+                </div>
+                <div class="mission-card">
+                    <div class="mission-icon">⭐</div>
+                    <h3>Наши Ценности</h3>
+                    <p>Инновации, качество, открытость, сотрудничество и постоянное развитие — это принципы, 
+                    которыми мы руководствуемся в нашей работе.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Achievements -->
+        <section class="achievements-section">
+            <h2 class="section-title">Наши Достижения</h2>
+            <div class="achievements-grid">
+                <div class="achievement-card">
+                    <div class="achievement-number">60+</div>
+                    <div class="achievement-label">Проведённых хакатонов</div>
+                </div>
+                <div class="achievement-card">
+                    <div class="achievement-number">1,234+</div>
+                    <div class="achievement-label">Активных участников</div>
+                </div>
+                <div class="achievement-card">
+                    <div class="achievement-number">890+</div>
+                    <div class="achievement-label">Созданных проектов</div>
+                </div>
+                <div class="achievement-card">
+                    <div class="achievement-number">24</div>
+                    <div class="achievement-label">Партнёрских организаций</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Team Section -->
+        <section class="team-section">
+            <h2 class="section-title">Наша Команда</h2>
+            <div class="team-grid">
+                <div class="team-card">
+                    <div class="team-avatar">👨‍💼</div>
+                    <h3>Алексей Иванов</h3>
+                    <p class="team-role">Основатель и CEO</p>
+                    <p class="team-desc">10+ лет опыта в технологической индустрии</p>
+                </div>
+                <div class="team-card">
+                    <div class="team-avatar">👩‍💻</div>
+                    <h3>Мария Петрова</h3>
+                    <p class="team-role">CTO</p>
+                    <p class="team-desc">Эксперт в области разработки и инноваций</p>
+                </div>
+                <div class="team-card">
+                    <div class="team-avatar">👨‍🎓</div>
+                    <h3>Дмитрий Сидоров</h3>
+                    <p class="team-role">Директор по образованию</p>
+                    <p class="team-desc">Специалист по образовательным программам</p>
+                </div>
+                <div class="team-card">
+                    <div class="team-avatar">👩‍💼</div>
+                    <h3>Елена Козлова</h3>
+                    <p class="team-role">Директор по партнёрствам</p>
+                    <p class="team-desc">Опыт работы с крупными технологическими компаниями</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section class="contact-section">
+            <h2 class="section-title">Свяжитесь с нами</h2>
+            <div class="contact-grid">
+                <div class="contact-card">
+                    <div class="contact-icon">📧</div>
+                    <h3>Email</h3>
+                    <p>info@hackathonhub.ru</p>
+                </div>
+                <div class="contact-card">
+                    <div class="contact-icon">📱</div>
+                    <h3>Телефон</h3>
+                    <p>+7 (495) 123-45-67</p>
+                </div>
+                <div class="contact-card">
+                    <div class="contact-icon">📍</div>
+                    <h3>Адрес</h3>
+                    <p>Москва, ул. Технологическая, д. 1</p>
+                </div>
+                <div class="contact-card">
+                    <div class="contact-icon">🌐</div>
+                    <h3>Социальные сети</h3>
+                    <p>@hackathonhub</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="/static/script.js"></script>
+    <script>
+        // Update navigation on load
+        if (typeof updateNavigation === 'function') {
+            updateNavigation();
+        }
+    </script>
+</body>
+</html>
+

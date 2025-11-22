@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель администратора - Хакатон Хаб</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Upper Navigation Hub -->
+    <nav class="top-nav">
+        <div class="nav-container">
+            <button class="menu-btn" id="menuBtn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="logo">
+                <h1>Хакатон Хаб - Админ</h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="/">Главная</a></li>
+                <li><a href="hackathons.html">Хакатоны</a></li>
+                <li><a href="about.html">О нас</a></li>
+                <li><a href="#" id="logoutBtn">Выход</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Sidebar Hub -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>Информационный Хаб</h2>
+            <button class="close-btn" id="closeBtn">&times;</button>
+        </div>
+        <div class="sidebar-content">
+            <div class="hub-section" id="participantsSection">
+                <h3>Участники</h3>
+                <div class="info-card">
+                    <p><strong>Всего участников:</strong> <span id="statTotalUsers">-</span></p>
+                    <p><strong>Активных сейчас:</strong> 89</p>
+                    <p><strong>Зарегистрировано в этом месяце:</strong> <span id="statUsersThisMonth">-</span></p>
+                </div>
+            </div>
+            <div class="hub-section" id="hackathonsSection">
+                <h3>Хакатоны</h3>
+                <div class="info-card">
+                    <p><strong>Предстоящие:</strong> 12</p>
+                    <p><strong>Текущие:</strong> 3</p>
+                    <p><strong>Завершённые:</strong> 45</p>
+                </div>
+            </div>
+            <div class="hub-section" id="coursesSection">
+                <h3>Интенсивные Курсы</h3>
+                <div class="info-card">
+                    <p><strong>Доступных курсов:</strong> 8</p>
+                    <p><strong>Записанных студентов:</strong> 567</p>
+                    <p><strong>Процент завершения:</strong> 78%</p>
+                </div>
+            </div>
+            <div class="hub-section" id="organizationsSection">
+                <h3>Организации</h3>
+                <div class="info-card">
+                    <p><strong>Всего организаций:</strong> 24</p>
+                    <p><strong>Активных партнёров:</strong> 18</p>
+                    <p><strong>Опубликовано хакатонов:</strong> 67</p>
+                </div>
+            </div>
+            <div class="hub-section" id="statisticsSection">
+                <h3>Статистика</h3>
+                <div class="info-card">
+                    <p><strong>Всего проектов:</strong> 890</p>
+                    <p><strong>Процент успеха:</strong> 82%</p>
+                    <p><strong>Средний размер команды:</strong> 4.2</p>
+                    <p><strong>Призовой фонд:</strong> $125,000</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="hero-section">
+            <h2>Панель администратора</h2>
+            <p>Управление пользователями и настройками системы</p>
+        </div>
+
+        <!-- Admin Settings -->
+        <section class="admin-section">
+            <h2 class="section-title">Настройки системы</h2>
+            <div class="admin-settings-grid">
+                <div class="admin-card">
+                    <h3>Статистика пользователей</h3>
+                    <div class="stat-item">
+                        <span>Всего пользователей:</span>
+                        <strong id="statTotal">-</strong>
+                    </div>
+                    <div class="stat-item">
+                        <span>Администраторов:</span>
+                        <strong id="statAdmins">-</strong>
+                    </div>
+                    <div class="stat-item">
+                        <span>Обычных пользователей:</span>
+                        <strong id="statUsers">-</strong>
+                    </div>
+                    <div class="stat-item">
+                        <span>Зарегистрировано в этом месяце:</span>
+                        <strong id="statMonth">-</strong>
+                    </div>
+                    <button class="btn btn-primary" onclick="loadStatistics()">Обновить</button>
+                </div>
+
+                <div class="admin-card">
+                    <h3>Информация о сессии</h3>
+                    <div class="session-info">
+                        <p><strong>Текущий пользователь:</strong> <span id="currentUser">-</span></p>
+                        <p><strong>Роль:</strong> <span id="currentRole">-</span></p>
+                        <p><strong>Email:</strong> <span id="currentEmail">-</span></p>
+                        <p><strong>ID пользователя:</strong> <span id="currentUserId">-</span></p>
+                        <p><strong>Дата регистрации:</strong> <span id="currentUserCreated">-</span></p>
+                    </div>
+                    <div class="session-actions">
+                        <button class="btn btn-secondary" onclick="clearSession()">Очистить сессию</button>
+                        <button class="btn btn-primary" onclick="refreshSession()">Обновить сессию</button>
+                    </div>
+                </div>
+                
+                <div class="admin-card">
+                    <h3>Настройки системы</h3>
+                    <div class="settings-list">
+                        <div class="setting-item">
+                            <label>
+                                <input type="checkbox" id="autoRefresh" checked>
+                                <span>Автообновление статистики</span>
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <label>
+                                <input type="checkbox" id="showDeletedUsers">
+                                <span>Показывать удалённых пользователей</span>
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <label>
+                                <span>Интервал обновления (сек):</span>
+                                <input type="number" id="refreshInterval" value="30" min="10" max="300">
+                            </label>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="saveSettings()">Сохранить настройки</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Users Management -->
+        <section class="admin-section">
+            <h2 class="section-title">Управление пользователями</h2>
+            <div class="users-controls">
+                <button class="btn btn-primary" onclick="loadUsers()">Обновить список</button>
+                <button class="btn btn-secondary" onclick="showAddUserForm()">Добавить пользователя</button>
+            </div>
+            <div id="usersList" class="users-list"></div>
+        </section>
+
+        <!-- Add User Modal -->
+        <div id="addUserModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <span class="close-modal" onclick="closeAddUserForm()">&times;</span>
+                <h2>Добавить пользователя</h2>
+                <form id="addUserForm" class="registration-form">
+                    <div class="form-group">
+                        <label for="addEmail">Email</label>
+                        <input type="email" id="addEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="addPassword">Пароль</label>
+                        <input type="password" id="addPassword" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="addFullName">Полное имя</label>
+                        <input type="text" id="addFullName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="addPhone">Телефон</label>
+                        <input type="tel" id="addPhone" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="addRole">Роль</label>
+                        <select id="addRole" required>
+                            <option value="user">Пользователь</option>
+                            <option value="admin">Администратор</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Добавить</button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>
+

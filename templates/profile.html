@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Профиль - Хакатон Хаб</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <style>
+        .profile-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .profile-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        .profile-header h2 {
+            margin: 0 0 0.5rem 0;
+            font-size: 2rem;
+        }
+        .profile-header p {
+            margin: 0;
+            opacity: 0.9;
+        }
+        .profile-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        .profile-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .profile-card h3 {
+            margin-top: 0;
+            color: #667eea;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 0.5rem;
+        }
+        .profile-info-item {
+            margin: 1rem 0;
+            padding: 0.75rem;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        .profile-info-item strong {
+            display: block;
+            color: #333;
+            margin-bottom: 0.25rem;
+        }
+        .profile-info-item span {
+            color: #666;
+        }
+        .skills-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        .skill-tag {
+            background: #667eea;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+        .work-level-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+            color: white;
+        }
+        .work-level-junior { background: #28a745; }
+        .work-level-middle { background: #ffc107; color: #333; }
+        .work-level-senior { background: #dc3545; }
+        .work-level-lead { background: #6f42c1; }
+        .experience-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+            color: white;
+        }
+        .experience-beginner { background: #17a2b8; }
+        .experience-intermediate { background: #007bff; }
+        .experience-advanced { background: #6f42c1; }
+        .company-info {
+            background: #e7f3ff;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-top: 1rem;
+        }
+        .company-info h4 {
+            margin-top: 0;
+            color: #667eea;
+        }
+        .no-data {
+            color: #999;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <!-- Upper Navigation Hub -->
+    <nav class="top-nav">
+        <div class="nav-container">
+            <button class="menu-btn" id="menuBtn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="logo">
+                <h1>Хакатон Хаб</h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="/">Главная</a></li>
+                <li><a href="registration.html" id="registerLink">Регистрация</a></li>
+                <li><a href="hackathons.html">Хакатоны</a></li>
+                <li><a href="about.html">О нас</a></li>
+                <li><a href="profile.html" class="active" id="profileLink" style="display: none;">Профиль</a></li>
+                <li><a href="login.html" id="loginLink">Вход</a></li>
+                <li><a href="#" id="logoutLink" style="display: none;">Выход</a></li>
+                <li><a href="admin.html" id="adminLink" style="display: none;">Админ</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Sidebar Hub -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>Информационный Хаб</h2>
+            <button class="close-btn" id="closeBtn">&times;</button>
+        </div>
+        <div class="sidebar-content">
+            <div class="hub-section" id="participantsSection">
+                <h3>Участники</h3>
+                <div class="info-card">
+                    <p><strong>Всего участников:</strong> 1,234</p>
+                    <p><strong>Активных сейчас:</strong> 89</p>
+                    <p><strong>Зарегистрировано в этом месяце:</strong> 156</p>
+                </div>
+            </div>
+            <div class="hub-section" id="hackathonsSection">
+                <h3>Хакатоны</h3>
+                <div class="info-card">
+                    <p><strong>Предстоящие:</strong> 12</p>
+                    <p><strong>Текущие:</strong> 3</p>
+                    <p><strong>Завершённые:</strong> 45</p>
+                </div>
+            </div>
+            <div class="hub-section" id="coursesSection">
+                <h3>Интенсивные Курсы</h3>
+                <div class="info-card">
+                    <p><strong>Доступных курсов:</strong> 8</p>
+                    <p><strong>Записанных студентов:</strong> 567</p>
+                    <p><strong>Процент завершения:</strong> 78%</p>
+                </div>
+            </div>
+            <div class="hub-section" id="organizationsSection">
+                <h3>Организации</h3>
+                <div class="info-card">
+                    <p><strong>Всего организаций:</strong> 24</p>
+                    <p><strong>Активных партнёров:</strong> 18</p>
+                    <p><strong>Опубликовано хакатонов:</strong> 67</p>
+                </div>
+            </div>
+            <div class="hub-section" id="statisticsSection">
+                <h3>Статистика</h3>
+                <div class="info-card">
+                    <p><strong>Всего проектов:</strong> 890</p>
+                    <p><strong>Процент успеха:</strong> 82%</p>
+                    <p><strong>Средний размер команды:</strong> 4.2</p>
+                    <p><strong>Призовой фонд:</strong> $125,000</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="profile-container">
+            <div class="profile-header">
+                <h2 id="profileName">Загрузка...</h2>
+                <p id="profileRole">Загрузка данных профиля...</p>
+            </div>
+
+            <div class="profile-content">
+                <!-- Personal Information -->
+                <div class="profile-card">
+                    <h3>Личная информация</h3>
+                    <div class="profile-info-item">
+                        <strong>Полное имя</strong>
+                        <span id="profileFullName">-</span>
+                    </div>
+                    <div class="profile-info-item">
+                        <strong>Email</strong>
+                        <span id="profileEmail">-</span>
+                    </div>
+                    <div class="profile-info-item">
+                        <strong>Телефон</strong>
+                        <span id="profilePhone">-</span>
+                    </div>
+                    <div class="profile-info-item">
+                        <strong>Роль</strong>
+                        <span id="profileRoleText">-</span>
+                    </div>
+                    <div class="profile-info-item">
+                        <strong>Дата регистрации</strong>
+                        <span id="profileCreatedAt">-</span>
+                    </div>
+                </div>
+
+                <!-- Skills and Experience -->
+                <div class="profile-card">
+                    <h3>Навыки и опыт</h3>
+                    <div class="profile-info-item">
+                        <strong>Навыки/Технологии</strong>
+                        <div id="profileSkills" class="skills-list">
+                            <span class="no-data">Не указано</span>
+                        </div>
+                    </div>
+                    <div class="profile-info-item">
+                        <strong>Уровень опыта</strong>
+                        <div id="profileExperience">-</div>
+                    </div>
+                    <div class="profile-info-item">
+                        <strong>Уровень работы</strong>
+                        <div id="profileWorkLevel">-</div>
+                    </div>
+                </div>
+
+                <!-- Company Information (if case_holder) -->
+                <div class="profile-card" id="companyCard" style="display: none;">
+                    <h3>Информация о компании</h3>
+                    <div class="company-info">
+                        <h4 id="companyName">-</h4>
+                        <p id="companyDescription" class="no-data">Описание не указано</p>
+                        <div class="profile-info-item" style="margin-top: 1rem;">
+                            <strong>Юридический адрес</strong>
+                            <span id="companyLegalAddress" class="no-data">Не указано</span>
+                        </div>
+                        <div class="profile-info-item">
+                            <strong>Официальный сайт</strong>
+                            <span id="companyWebsite" class="no-data">Не указано</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/static/script.js"></script>
+    <script>
+        // Update navigation on load
+        if (typeof updateNavigation === 'function') {
+            updateNavigation();
+        }
+
+        // Load and display user profile
+        async function loadProfile() {
+            try {
+                const response = await fetch('/api/user');
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                    throw new Error('Ошибка загрузки профиля');
+                }
+
+                const user = await response.json();
+                displayProfile(user);
+            } catch (error) {
+                console.error('Ошибка загрузки профиля:', error);
+                document.querySelector('.profile-header h2').textContent = 'Ошибка загрузки';
+                document.querySelector('.profile-header p').textContent = 'Не удалось загрузить данные профиля';
+            }
+        }
+
+        function displayProfile(user) {
+            // Header
+            document.getElementById('profileName').textContent = user.fullName || 'Пользователь';
+            const roleLabels = {
+                'participant': 'Участник',
+                'student': 'Студент',
+                'case_holder': 'Кейсодержатель',
+                'admin': 'Администратор',
+                'user': 'Пользователь'
+            };
+            document.getElementById('profileRole').textContent = roleLabels[user.role] || user.role || 'Пользователь';
+
+            // Personal Information
+            document.getElementById('profileFullName').textContent = user.fullName || '-';
+            document.getElementById('profileEmail').textContent = user.email || '-';
+            document.getElementById('profilePhone').textContent = user.phone || '-';
+            document.getElementById('profileRoleText').textContent = roleLabels[user.role] || user.role || '-';
+            
+            if (user.createdAt) {
+                const date = new Date(user.createdAt);
+                document.getElementById('profileCreatedAt').textContent = date.toLocaleDateString('ru-RU', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+            } else {
+                document.getElementById('profileCreatedAt').textContent = '-';
+            }
+
+            // Skills
+            const skillsContainer = document.getElementById('profileSkills');
+            if (user.skills && user.skills.trim()) {
+                const skills = user.skills.split(',').map(s => s.trim()).filter(s => s);
+                if (skills.length > 0) {
+                    skillsContainer.innerHTML = skills.map(skill => 
+                        `<span class="skill-tag">${skill}</span>`
+                    ).join('');
+                } else {
+                    skillsContainer.innerHTML = '<span class="no-data">Не указано</span>';
+                }
+            } else {
+                skillsContainer.innerHTML = '<span class="no-data">Не указано</span>';
+            }
+
+            // Experience Level
+            const experienceContainer = document.getElementById('profileExperience');
+            const experienceLabels = {
+                'beginner': { text: 'Начинающий', class: 'experience-beginner' },
+                'intermediate': { text: 'Средний', class: 'experience-intermediate' },
+                'advanced': { text: 'Продвинутый', class: 'experience-advanced' }
+            };
+            if (user.experience && experienceLabels[user.experience]) {
+                const exp = experienceLabels[user.experience];
+                experienceContainer.innerHTML = `<span class="experience-badge ${exp.class}">${exp.text}</span>`;
+            } else {
+                experienceContainer.innerHTML = '<span class="no-data">Не указано</span>';
+            }
+
+            // Work Level
+            const workLevelContainer = document.getElementById('profileWorkLevel');
+            const workLevelLabels = {
+                'junior': { text: 'Junior', class: 'work-level-junior' },
+                'middle': { text: 'Middle', class: 'work-level-middle' },
+                'senior': { text: 'Senior', class: 'work-level-senior' },
+                'lead': { text: 'Lead', class: 'work-level-lead' }
+            };
+            if (user.workLevel && workLevelLabels[user.workLevel]) {
+                const wl = workLevelLabels[user.workLevel];
+                workLevelContainer.innerHTML = `<span class="work-level-badge ${wl.class}">${wl.text}</span>`;
+            } else {
+                workLevelContainer.innerHTML = '<span class="no-data">Не указано</span>';
+            }
+
+            // Company Information (if case_holder)
+            if (user.role === 'case_holder') {
+                document.getElementById('companyCard').style.display = 'block';
+                document.getElementById('companyName').textContent = user.companyName || '-';
+                document.getElementById('companyDescription').textContent = user.companyDescription || 'Описание не указано';
+                document.getElementById('companyDescription').className = user.companyDescription ? '' : 'no-data';
+                document.getElementById('companyLegalAddress').textContent = user.legalAddress || 'Не указано';
+                document.getElementById('companyLegalAddress').className = user.legalAddress ? '' : 'no-data';
+                if (user.officialWebsite) {
+                    document.getElementById('companyWebsite').innerHTML = `<a href="${user.officialWebsite}" target="_blank">${user.officialWebsite}</a>`;
+                    document.getElementById('companyWebsite').className = '';
+                } else {
+                    document.getElementById('companyWebsite').textContent = 'Не указано';
+                    document.getElementById('companyWebsite').className = 'no-data';
+                }
+            } else {
+                document.getElementById('companyCard').style.display = 'none';
+            }
+        }
+
+        // Load profile on page load
+        window.addEventListener('DOMContentLoaded', loadProfile);
+    </script>
+</body>
+</html>
+

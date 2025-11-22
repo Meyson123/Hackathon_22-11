@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация - Хакатон Хаб</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <!-- Upper Navigation Hub -->
+    <nav class="top-nav">
+        <div class="nav-container">
+            <button class="menu-btn" id="menuBtn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="logo">
+                <h1>Хакатон Хаб</h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="/">Главная</a></li>
+                <li><a href="registration.html" class="active">Регистрация</a></li>
+                <li><a href="hackathons.html">Хакатоны</a></li>
+                <li><a href="about.html">О нас</a></li>
+                <li><a href="profile.html" id="profileLink" style="display: none;">Профиль</a></li>
+                <li><a href="login.html" id="loginLink">Вход</a></li>
+                <li><a href="#" id="logoutLink" style="display: none;">Выход</a></li>
+                <li><a href="admin.html" id="adminLink" style="display: none;">Админ</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Sidebar Hub -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>Информационный Хаб</h2>
+            <button class="close-btn" id="closeBtn">&times;</button>
+        </div>
+        <div class="sidebar-content">
+            <div class="hub-section" id="participantsSection">
+                <h3>Участники</h3>
+                <div class="info-card">
+                    <p><strong>Всего участников:</strong> 1,234</p>
+                    <p><strong>Активных сейчас:</strong> 89</p>
+                    <p><strong>Зарегистрировано в этом месяце:</strong> 156</p>
+                </div>
+            </div>
+            <div class="hub-section" id="hackathonsSection">
+                <h3>Хакатоны</h3>
+                <div class="info-card">
+                    <p><strong>Предстоящие:</strong> 12</p>
+                    <p><strong>Текущие:</strong> 3</p>
+                    <p><strong>Завершённые:</strong> 45</p>
+                </div>
+            </div>
+            <div class="hub-section" id="coursesSection">
+                <h3>Интенсивные Курсы</h3>
+                <div class="info-card">
+                    <p><strong>Доступных курсов:</strong> 8</p>
+                    <p><strong>Записанных студентов:</strong> 567</p>
+                    <p><strong>Процент завершения:</strong> 78%</p>
+                </div>
+            </div>
+            <div class="hub-section" id="organizationsSection">
+                <h3>Организации</h3>
+                <div class="info-card">
+                    <p><strong>Всего организаций:</strong> 24</p>
+                    <p><strong>Активных партнёров:</strong> 18</p>
+                    <p><strong>Опубликовано хакатонов:</strong> 67</p>
+                </div>
+            </div>
+            <div class="hub-section" id="statisticsSection">
+                <h3>Статистика</h3>
+                <div class="info-card">
+                    <p><strong>Всего проектов:</strong> 890</p>
+                    <p><strong>Процент успеха:</strong> 82%</p>
+                    <p><strong>Средний размер команды:</strong> 4.2</p>
+                    <p><strong>Призовой фонд:</strong> $125,000</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Registration Form -->
+    <main class="main-content">
+        <div class="registration-container">
+            <div class="registration-card">
+                <h2 id="registrationTitle">Регистрация в Хакатон Хаб</h2>
+                <p class="subtitle" id="registrationSubtitle">Присоединяйтесь к нашему сообществу и начните свой путь</p>
+                
+                <form id="registrationForm" class="registration-form">
+                    <div class="form-group">
+                        <label for="fullName">Полное имя</label>
+                        <input type="text" id="fullName" name="fullName" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Адрес электронной почты</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Пароль</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">Номер телефона</label>
+                        <input type="tel" id="phone" name="phone" required>
+                    </div>
+
+                    <div class="form-group" id="roleGroup">
+                        <label for="role">Я хочу</label>
+                        <select id="role" name="role" required>
+                            <option value="">Выберите вариант</option>
+                            <option value="participant">Участвовать в хакатонах</option>
+                            <option value="student">Записаться на интенсивные курсы</option>
+                            <option value="case_holder">Кейсодержатель</option>
+                        </select>
+                    </div>
+
+                    
+                    <div class="form-group" id="companyGroup" style="display: none;">
+                        <label for="companyName">Название компании</label>
+                        <input type="text" id="companyName" name="companyName" placeholder="Введите название компании">
+                    </div>
+                    
+                    <div class="form-group" id="companyDescriptionGroup" style="display: none;">
+                        <label for="companyDescription">Описание компании</label>
+                        <textarea id="companyDescription" name="companyDescription" rows="4" placeholder="Расскажите о вашей компании"></textarea>
+                    </div>
+
+                    <div class="form-group" id="legalAddressGroup" style="display: none;">
+                        <label for="legalAddress">Юридический адрес</label>
+                        <textarea id="legalAddress" name="legalAddress" rows="4" placeholder="Введите юридический адрес"></textarea>
+                    </div>
+
+                    <div class="form-group" id="officialWebsiteGroup" style="display: none;">
+                        <label for="officialWebsite">Официальный сайт</label>
+                        <input type="url" id="officialWebsite" name="officialWebsite" placeholder="https://example.com">
+                    </div>
+
+                    <div class="form-group checkbox-group">
+                        <label>
+                            <input type="checkbox" id="terms" name="terms" required>
+                            <span>Я согласен с условиями использования</span>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-full">Зарегистрироваться</button>
+                </form>
+
+                <div id="successMessage" class="success-message" style="display: none;">
+                    <p>✅ Регистрация успешна! Добро пожаловать в Хакатон Хаб!</p>
+                </div>
+                <div id="errorMessage" class="error-message" style="display: none;"></div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/static/script.js"></script>
+    <script>
+        // Update navigation on load
+        if (typeof updateNavigation === 'function') {
+            updateNavigation();
+        }
+        
+        // Handle registration type from URL parameter
+        window.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const registrationType = urlParams.get('type');
+            
+            const roleSelect = document.getElementById('role');
+            const companyGroup = document.getElementById('companyGroup');
+            const companyDescriptionGroup = document.getElementById('companyDescriptionGroup');
+            const legalAddressGroup = document.getElementById('legalAddressGroup');
+            const officialWebsiteGroup = document.getElementById('officialWebsiteGroup');
+            const title = document.getElementById('registrationTitle');
+            const subtitle = document.getElementById('registrationSubtitle');
+            
+            // Function to toggle company fields visibility
+            function toggleCompanyFields(show) {
+                companyGroup.style.display = show ? 'block' : 'none';
+                companyDescriptionGroup.style.display = show ? 'block' : 'none';
+                legalAddressGroup.style.display = show ? 'block' : 'none';
+                officialWebsiteGroup.style.display = show ? 'block' : 'none';
+                
+                if (show) {
+                    document.getElementById('companyName').required = true;
+                    document.getElementById('companyDescription').required = true;
+                } else {
+                    document.getElementById('companyName').required = false;
+                    document.getElementById('companyDescription').required = false;
+                }
+            }
+            
+            // Handle role change
+            roleSelect.addEventListener('change', function() {
+                if (this.value === 'case_holder') {
+                    toggleCompanyFields(true);
+                } else {
+                    toggleCompanyFields(false);
+                }
+            });
+            
+            if (registrationType === 'participant') {
+                // Set role to participant
+                roleSelect.value = 'participant';
+                roleSelect.disabled = true;
+                toggleCompanyFields(false);
+                title.textContent = 'Регистрация участника';
+                subtitle.textContent = 'Заполните форму для участия в хакатонах и курсах';
+            } else if (registrationType === 'case_holder') {
+                // Set role to case_holder
+                roleSelect.value = 'case_holder';
+                roleSelect.disabled = true;
+                toggleCompanyFields(true);
+                title.textContent = 'Регистрация кейсодержателя (Компания)';
+                subtitle.textContent = 'Заполните форму для размещения кейсов и организации хакатонов';
+            } else {
+                // Default: show all fields
+                toggleCompanyFields(false);
+            }
+        });
+    </script>
+</body>
+</html>
+

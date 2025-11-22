@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход - Хакатон Хаб</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <!-- Upper Navigation Hub -->
+    <nav class="top-nav">
+        <div class="nav-container">
+            <button class="menu-btn" id="menuBtn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="logo">
+                <h1>Хакатон Хаб</h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="/">Главная</a></li>
+                <li><a href="registration.html">Регистрация</a></li>
+                <li><a href="hackathons.html">Хакатоны</a></li>
+                <li><a href="about.html">О нас</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Sidebar Hub -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>Информационный Хаб</h2>
+            <button class="close-btn" id="closeBtn">&times;</button>
+        </div>
+        <div class="sidebar-content">
+            <div class="hub-section" id="participantsSection">
+                <h3>Участники</h3>
+                <div class="info-card">
+                    <p><strong>Всего участников:</strong> 1,234</p>
+                    <p><strong>Активных сейчас:</strong> 89</p>
+                    <p><strong>Зарегистрировано в этом месяце:</strong> 156</p>
+                </div>
+            </div>
+            <div class="hub-section" id="hackathonsSection">
+                <h3>Хакатоны</h3>
+                <div class="info-card">
+                    <p><strong>Предстоящие:</strong> 12</p>
+                    <p><strong>Текущие:</strong> 3</p>
+                    <p><strong>Завершённые:</strong> 45</p>
+                </div>
+            </div>
+            <div class="hub-section" id="coursesSection">
+                <h3>Интенсивные Курсы</h3>
+                <div class="info-card">
+                    <p><strong>Доступных курсов:</strong> 8</p>
+                    <p><strong>Записанных студентов:</strong> 567</p>
+                    <p><strong>Процент завершения:</strong> 78%</p>
+                </div>
+            </div>
+            <div class="hub-section" id="organizationsSection">
+                <h3>Организации</h3>
+                <div class="info-card">
+                    <p><strong>Всего организаций:</strong> 24</p>
+                    <p><strong>Активных партнёров:</strong> 18</p>
+                    <p><strong>Опубликовано хакатонов:</strong> 67</p>
+                </div>
+            </div>
+            <div class="hub-section" id="statisticsSection">
+                <h3>Статистика</h3>
+                <div class="info-card">
+                    <p><strong>Всего проектов:</strong> 890</p>
+                    <p><strong>Процент успеха:</strong> 82%</p>
+                    <p><strong>Средний размер команды:</strong> 4.2</p>
+                    <p><strong>Призовой фонд:</strong> $125,000</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Login Form -->
+    <main class="main-content">
+        <div class="registration-container">
+            <div class="registration-card">
+                <h2>Вход в систему</h2>
+                <p class="subtitle">Войдите в свой аккаунт</p>
+                
+                <form id="loginForm" class="registration-form">
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Пароль</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-full">Войти</button>
+                </form>
+
+                <div class="login-links">
+                    <p>Нет аккаунта? <a href="registration.html">Зарегистрируйтесь</a></p>
+                </div>
+
+                <div id="errorMessage" class="error-message" style="display: none;"></div>
+                <div id="successMessage" class="success-message" style="display: none;"></div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/static/script.js"></script>
+    <script>
+        // Login form handling
+        const loginForm = document.getElementById('loginForm');
+        const errorMessage = document.getElementById('errorMessage');
+        const successMessage = document.getElementById('successMessage');
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(loginForm);
+            const data = {
+                email: formData.get('email'),
+                password: formData.get('password')
+            };
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    successMessage.textContent = 'Успешный вход! Перенаправление...';
+                    successMessage.style.display = 'block';
+                    errorMessage.style.display = 'none';
+                    
+                    // Redirect based on role
+                    setTimeout(() => {
+                        if (result.user.role === 'admin') {
+                            window.location.href = 'admin.html';
+                        } else {
+                            window.location.href = 'index.html';
+                        }
+                    }, 1000);
+                } else {
+                    errorMessage.textContent = result.error || 'Ошибка входа';
+                    errorMessage.style.display = 'block';
+                    successMessage.style.display = 'none';
+                }
+            } catch (error) {
+                errorMessage.textContent = 'Ошибка соединения с сервером';
+                errorMessage.style.display = 'block';
+                successMessage.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
+

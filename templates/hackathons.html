@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Хакатоны - Хакатон Хаб</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <!-- Upper Navigation Hub -->
+    <nav class="top-nav">
+        <div class="nav-container">
+            <button class="menu-btn" id="menuBtn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="logo">
+                <h1>Хакатон Хаб</h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="/">Главная</a></li>
+                <li><a href="registration.html" id="registerLink">Регистрация</a></li>
+                <li><a href="hackathons.html" class="active">Хакатоны</a></li>
+                <li><a href="about.html">О нас</a></li>
+                <li><a href="profile.html" id="profileLink" style="display: none;">Профиль</a></li>
+                <li><a href="login.html" id="loginLink">Вход</a></li>
+                <li><a href="#" id="logoutLink" style="display: none;">Выход</a></li>
+                <li><a href="admin.html" id="adminLink" style="display: none;">Админ</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Sidebar Hub -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>Информационный Хаб</h2>
+            <button class="close-btn" id="closeBtn">&times;</button>
+        </div>
+        <div class="sidebar-content">
+            <div class="hub-section" id="participantsSection">
+                <h3>Участники</h3>
+                <div class="info-card">
+                    <p><strong>Всего участников:</strong> 1,234</p>
+                    <p><strong>Активных сейчас:</strong> 89</p>
+                    <p><strong>Зарегистрировано в этом месяце:</strong> 156</p>
+                </div>
+            </div>
+            <div class="hub-section" id="hackathonsSection">
+                <h3>Хакатоны</h3>
+                <div class="info-card">
+                    <p><strong>Предстоящие:</strong> 12</p>
+                    <p><strong>Текущие:</strong> 3</p>
+                    <p><strong>Завершённые:</strong> 45</p>
+                </div>
+            </div>
+            <div class="hub-section" id="coursesSection">
+                <h3>Интенсивные Курсы</h3>
+                <div class="info-card">
+                    <p><strong>Доступных курсов:</strong> 8</p>
+                    <p><strong>Записанных студентов:</strong> 567</p>
+                    <p><strong>Процент завершения:</strong> 78%</p>
+                </div>
+            </div>
+            <div class="hub-section" id="organizationsSection">
+                <h3>Организации</h3>
+                <div class="info-card">
+                    <p><strong>Всего организаций:</strong> 24</p>
+                    <p><strong>Активных партнёров:</strong> 18</p>
+                    <p><strong>Опубликовано хакатонов:</strong> 67</p>
+                </div>
+            </div>
+            <div class="hub-section" id="statisticsSection">
+                <h3>Статистика</h3>
+                <div class="info-card">
+                    <p><strong>Всего проектов:</strong> 890</p>
+                    <p><strong>Процент успеха:</strong> 82%</p>
+                    <p><strong>Средний размер команды:</strong> 4.2</p>
+                    <p><strong>Призовой фонд:</strong> $125,000</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="hero-section">
+            <h2>Хакатоны</h2>
+            <p>Откройте для себя захватывающие соревнования по программированию</p>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="filter-tabs">
+            <button class="filter-btn active" data-filter="upcoming">Предстоящие</button>
+            <button class="filter-btn" data-filter="ongoing">Текущие</button>
+            <button class="filter-btn" data-filter="completed">Завершённые</button>
+        </div>
+
+        <!-- Upcoming Hackathons -->
+        <section class="hackathons-section" id="upcoming">
+            <h2 class="section-title">Предстоящие Хакатоны</h2>
+            <div class="hackathons-grid">
+                <div class="hackathon-card">
+                    <div class="hackathon-badge upcoming">Предстоящий</div>
+                    <h3>Tech Innovation Challenge 2024</h3>
+                    <p class="hackathon-org">Организатор: TechCorp</p>
+                    <p class="hackathon-desc">Создайте инновационные решения для будущего технологий. Фокус на AI, IoT и блокчейн.</p>
+                    <div class="hackathon-details">
+                        <div class="detail-item">
+                            <span class="detail-icon">📅</span>
+                            <span>15-17 Марта 2024</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-icon">⏱️</span>
+                            <span>48 часов</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-icon">💰</span>
+                            <span>$50,000</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-icon">👥</span>
+                            <span>До 5 человек</span>
+                        </div>
+                    </div>
+                    <a href="registration.html" class="btn btn-primary btn-full">Зарегистрироваться</a>
+                </div>
+
+                <div class="hackathon-card">
+                    <div class="hackathon-badge upcoming">Предстоящий</div>
+                    <h3>GreenTech Hackathon</h3>
+                    <p class="hackathon-org">Организатор: EcoSolutions</p>
+                    <p class="hackathon-desc">Разработайте экологичные технологические решения для устойчивого будущего.</p>
+                    <div class="hackathon-details">
+                        <div class="detail-item">
+                            <span class="detail-icon">📅</span>
+                            <span>22-24 Марта 2024</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-icon">⏱️</span>
+                            <span>36 часов</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-icon">💰</span>
+                            <span>$30,000</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-icon">👥</span>
+                            <span>До 4 человек</span>
+                        </div>
+                    </div>
+                    <a href="registration.html" class="btn btn-primary btn-full">Зарегистрироваться</a>
+                </div>
+
+                <div class="hackathon-card">
+                    <div class="hackathon-badge upcoming">Предстоящий</div>
+                    <h3>FinTech Innovation Summit</h3>
+                    <p class="hackathon-org">Организатор: FinanceHub</p>
+                    <p class="hackathon-desc">Создайте революционные финансовые технологии и платежные решения.</p>
+                    <div class="hackathon-details">
+                        <div class="detail-item">
+                            <span class="detail-icon">📅</span>
+                            <span>5-7 Апреля 2024</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-icon">⏱️</span>
+                            <span>48 часов</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-icon">💰</span>
+                            <span>$75,000</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-icon">👥</span>
+                            <span>До 6 человек</span>
+                        </div>
+                    </div>
+                    <a href="registration.html" class="btn btn-primary btn-full">Зарегистрироваться</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Ongoing Hackathons -->
+        <section class="hackathons-section" id="ongoing" style="display: none;">
+            <h2 class="section-title">Текущие Хакатоны</h2>
+            <div class="hackathons-grid">
+                <div class="hackathon-card">
+                    <div class="hackathon-badge ongoing">Идёт сейчас</div>
+                    <h3>Web Development Marathon</h3>
+                    <p class="hackathon-org">Организатор: WebDev Academy</p>
+                    <p class="hackathon-desc">Создайте современные веб-приложения с использованием последних технологий.</p>
+                    <div class="hackathon-details">
+                        <div class="detail-item">
+                            <span class="detail-icon">📅</span>
+                            <span>10-12 Марта 2024</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-icon">⏱️</span>
+                            <span>48 часов</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-icon">💰</span>
+                            <span>$25,000</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-icon">👥</span>
+                            <span>До 4 человек</span>
+                        </div>
+                    </div>
+                    <a href="registration.html" class="btn btn-primary btn-full">Присоединиться</a>
+                </div>
+
+                <div class="hackathon-card">
+                    <div class="hackathon-badge ongoing">Идёт сейчас</div>
+                    <h3>Mobile App Challenge</h3>
+                    <p class="hackathon-org">Организатор: MobileFirst</p>
+                    <p class="hackathon-desc">Разработайте инновационные мобильные приложения для iOS и Android.</p>
+                    <div class="hackathon-details">
+                        <div class="detail-item">
+                            <span class="detail-icon">📅</span>
+                            <span>8-10 Марта 2024</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-icon">⏱️</span>
+                            <span>48 часов</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-icon">💰</span>
+                            <span>$40,000</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-icon">👥</span>
+                            <span>До 5 человек</span>
+                        </div>
+                    </div>
+                    <a href="registration.html" class="btn btn-primary btn-full">Присоединиться</a>
+                </div>
+
+                <div class="hackathon-card">
+                    <div class="hackathon-badge ongoing">Идёт сейчас</div>
+                    <h3>AI & Machine Learning Hack</h3>
+                    <p class="hackathon-org">Организатор: AI Labs</p>
+                    <p class="hackathon-desc">Создайте интеллектуальные решения с использованием искусственного интеллекта.</p>
+                    <div class="hackathon-details">
+                        <div class="detail-item">
+                            <span class="detail-icon">📅</span>
+                            <span>12-14 Марта 2024</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-icon">⏱️</span>
+                            <span>48 часов</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-icon">💰</span>
+                            <span>$60,000</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-icon">👥</span>
+                            <span>До 5 человек</span>
+                        </div>
+                    </div>
+                    <a href="registration.html" class="btn btn-primary btn-full">Присоединиться</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Completed Hackathons -->
+        <section class="hackathons-section" id="completed" style="display: none;">
+            <h2 class="section-title">Завершённые Хакатоны</h2>
+            <div class="hackathons-grid">
+                <div class="hackathon-card">
+                    <div class="hackathon-badge completed">Завершён</div>
+                    <h3>Blockchain Innovation Challenge</h3>
+                    <p class="hackathon-org">Организатор: CryptoVentures</p>
+                    <p class="hackathon-desc">Разработайте децентрализованные приложения на блокчейне.</p>
+                    <div class="hackathon-details">
+                        <div class="detail-item">
+                            <span class="detail-icon">📅</span>
+                            <span>1-3 Февраля 2024</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-icon">⏱️</span>
+                            <span>48 часов</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-icon">💰</span>
+                            <span>$45,000</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-icon">👥</span>
+                            <span>120 участников</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary btn-full" disabled>Завершён</button>
+                </div>
+
+                <div class="hackathon-card">
+                    <div class="hackathon-badge completed">Завершён</div>
+                    <h3>HealthTech Solutions</h3>
+                    <p class="hackathon-org">Организатор: MedTech Inc</p>
+                    <p class="hackathon-desc">Создайте технологические решения для здравоохранения.</p>
+                    <div class="hackathon-details">
+                        <div class="detail-item">
+                            <span class="detail-icon">📅</span>
+                            <span>15-17 Февраля 2024</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-icon">⏱️</span>
+                            <span>36 часов</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-icon">💰</span>
+                            <span>$35,000</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-icon">👥</span>
+                            <span>95 участников</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary btn-full" disabled>Завершён</button>
+                </div>
+
+                <div class="hackathon-card">
+                    <div class="hackathon-badge completed">Завершён</div>
+                    <h3>EdTech Innovation Hack</h3>
+                    <p class="hackathon-org">Организатор: EduTech Solutions</p>
+                    <p class="hackathon-desc">Разработайте инновационные образовательные платформы.</p>
+                    <div class="hackathon-details">
+                        <div class="detail-item">
+                            <span class="detail-icon">📅</span>
+                            <span>22-24 Февраля 2024</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-icon">⏱️</span>
+                            <span>48 часов</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-icon">💰</span>
+                            <span>$30,000</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-icon">👥</span>
+                            <span>110 участников</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary btn-full" disabled>Завершён</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="/static/script.js"></script>
+    <script>
+        // Update navigation on load
+        if (typeof updateNavigation === 'function') {
+            updateNavigation();
+        }
+        
+        // Filter functionality
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const hackathonSections = document.querySelectorAll('.hackathons-section');
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Remove active class from all buttons
+                filterBtns.forEach(b => b.classList.remove('active'));
+                // Add active class to clicked button
+                btn.classList.add('active');
+
+                // Hide all sections
+                hackathonSections.forEach(section => {
+                    section.style.display = 'none';
+                });
+
+                // Show selected section
+                const filter = btn.getAttribute('data-filter');
+                const targetSection = document.getElementById(filter);
+                if (targetSection) {
+                    targetSection.style.display = 'block';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+

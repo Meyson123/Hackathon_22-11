@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Хакатон Хаб</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <!-- Upper Navigation Hub -->
+    <nav class="top-nav">
+        <div class="nav-container">
+            <button class="menu-btn" id="menuBtn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="logo">
+                <h1>Хакатон Хаб</h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="/" class="active">Главная</a></li>
+                <li><a href="registration.html" id="registerLink">Регистрация</a></li>
+                <li><a href="hackathons.html">Хакатоны</a></li>
+                <li><a href="about.html">О нас</a></li>
+                <li><a href="profile.html" id="profileLink" style="display: none;">Профиль</a></li>
+                <li><a href="login.html" id="loginLink">Вход</a></li>
+                <li><a href="#" id="logoutLink" style="display: none;">Выход</a></li>
+                <li><a href="admin.html" id="adminLink" style="display: none;">Админ</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Sidebar Hub -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>Информационный Хаб</h2>
+            <button class="close-btn" id="closeBtn">&times;</button>
+        </div>
+        <div class="sidebar-content">
+            <div class="hub-section" id="participantsSection">
+                <h3>Участники</h3>
+                <div class="info-card">
+                    <p><strong>Всего участников:</strong> 1,234</p>
+                    <p><strong>Активных сейчас:</strong> 89</p>
+                    <p><strong>Зарегистрировано в этом месяце:</strong> 156</p>
+                </div>
+            </div>
+            <div class="hub-section" id="hackathonsSection">
+                <h3>Хакатоны</h3>
+                <div class="info-card">
+                    <p><strong>Предстоящие:</strong> 12</p>
+                    <p><strong>Текущие:</strong> 3</p>
+                    <p><strong>Завершённые:</strong> 45</p>
+                </div>
+            </div>
+            <div class="hub-section" id="coursesSection">
+                <h3>Интенсивные Курсы</h3>
+                <div class="info-card">
+                    <p><strong>Доступных курсов:</strong> 8</p>
+                    <p><strong>Записанных студентов:</strong> 567</p>
+                    <p><strong>Процент завершения:</strong> 78%</p>
+                </div>
+            </div>
+            <div class="hub-section" id="organizationsSection">
+                <h3>Организации</h3>
+                <div class="info-card">
+                    <p><strong>Всего организаций:</strong> 24</p>
+                    <p><strong>Активных партнёров:</strong> 18</p>
+                    <p><strong>Опубликовано хакатонов:</strong> 67</p>
+                </div>
+            </div>
+            <div class="hub-section" id="statisticsSection">
+                <h3>Статистика</h3>
+                <div class="info-card">
+                    <p><strong>Всего проектов:</strong> 890</p>
+                    <p><strong>Процент успеха:</strong> 82%</p>
+                    <p><strong>Средний размер команды:</strong> 4.2</p>
+                    <p><strong>Призовой фонд:</strong> $125,000</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="hero-section">
+            <h2>Добро пожаловать в Хакатон Хаб</h2>
+            <p>Присоединяйтесь к самым захватывающим хакатонам и интенсивным курсам</p>
+            <div class="cta-buttons">
+                <a href="hackathons.html" class="btn btn-secondary">Изучить Хакатоны</a>
+            </div>
+        </div>
+
+        <section class="features-section">
+            <div class="feature-card">
+                <div class="feature-icon">🚀</div>
+                <h3>Предстоящие Хакатоны</h3>
+                <p>Присоединяйтесь к захватывающим соревнованиям по программированию и демонстрируйте свои навыки</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📚</div>
+                <h3>Интенсивные Курсы</h3>
+                <p>Учитесь у экспертов и ускоряйте свою карьеру</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">👥</div>
+                <h3>Общение и Нетворкинг</h3>
+                <p>Встречайтесь с единомышленниками-разработчиками и создавайте удивительные проекты</p>
+            </div>
+        </section>
+    </main>
+
+    <script src="/static/script.js"></script>
+    <script>
+        // Update navigation on load
+        if (typeof updateNavigation === 'function') {
+            updateNavigation();
+        }
+    </script>
+</body>
+</html>
+
