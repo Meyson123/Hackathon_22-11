@@ -1,10 +1,11 @@
 from fastapi import FastAPI, Request, Depends, HTTPException, status
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 from pydantic import BaseModel, EmailStr
 from typing import Optional
+from db import init_database, get_current_user, get_user_by_id, get_user_by_email, get_db_connection, require_admin
 import sqlite3
 import os
 from datetime import datetime
@@ -24,13 +25,11 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # Шаблоны
 templates = Jinja2Templates(directory="templates")
 
-# Путь к БД
-DB_PATH = "hackathon_hub.db"
-
 # Модели
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+
 
 class UserCreate(BaseModel):
     username: str
@@ -47,137 +46,66 @@ class UserCreate(BaseModel):
     intensives: Optional[str] = ""
     role: str = "user"
 
-def init_database():
-    """Инициализация базы данных SQLite с новой схемой"""
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-
-    # Создание таблицы пользователей с новой схемой
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS Users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT NOT NULL,
-            email TEXT NOT NULL UNIQUE,
-            password TEXT NOT NULL,
-            age INTEGER,
-            fio TEXT,
-            telegram_nickname TEXT UNIQUE,
-            balls INTEGER DEFAULT 0,
-            basics_knowledge TEXT,
-            city TEXT,
-            team_name TEXT,
-            looking_for_team BOOLEAN DEFAULT FALSE,
-            hackathons TEXT DEFAULT '',
-            intensives TEXT DEFAULT '',
-            role TEXT NOT NULL DEFAULT 'user',
-            created_at TEXT NOT NULL
-        )
-    ''')
-
-    # Создание администратора по умолчанию, если его нет
-    cursor.execute("SELECT * FROM Users WHERE role='admin'")
-    if not cursor.fetchone():
-        admin_user = {
-            "username": "admin",
-            "email": "admin@example.com",
-            "password": "admin123",  # Пароль в открытом виде
-            "fio": "Administrator",
-            "telegram_nickname": "@admin",
-            "basics_knowledge": "management,organization",
-            "city": "Moscow",
-            "role": "admin",
-            "created_at": datetime.now().isoformat()
-        }
-        cursor.execute('''
-            INSERT INTO Users (username, email, password, fio, telegram_nickname, basics_knowledge, city, role, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (
-            admin_user["username"], admin_user["email"], admin_user["password"],
-            admin_user["fio"], admin_user["telegram_nickname"], admin_user["basics_knowledge"],
-            admin_user["city"], admin_user["role"], admin_user["created_at"]
-        ))
-
-    conn.commit()
-    conn.close()
-
-# Вспомогательные функции для работы с БД
-def get_db_connection():
-    """Создание соединения с базой данных"""
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row  # Для доступа к колонкам по имени
-    return conn
-
-def get_user_by_email(email: str):
-    """Получение пользователя по email"""
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM Users WHERE email = ?", (email,))
-    user = cursor.fetchone()
-    conn.close()
-    return dict(user) if user else None
-
-def get_user_by_id(user_id: int):
-    """Получение пользователя по ID"""
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM Users WHERE id = ?", (user_id,))
-    user = cursor.fetchone()
-    conn.close()
-    return dict(user) if user else None
-
-def get_current_user(request: Request):
-    """Получение текущего пользователя из сессии"""
-    user_id = request.session.get("user_id")
-    if not user_id:
-        return None
-    return get_user_by_id(user_id)
-
-def require_admin(request: Request):
-    """Проверка прав администратора"""
-    user = get_current_user(request)
-    if not user or user["role"] != "admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Требуются права администратора"
-        )
-    return user
 
 # Инициализация БД
 init_database()
+
 
 # Роуты страниц
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
     user = get_current_user(request)
     return templates.TemplateResponse("index.html", {"request": request, "user": user})
+@app.get("/index.html", response_class=HTMLResponse)
+async def index(request: Request):
+    user = get_current_user(request)
+    return templates.TemplateResponse("index.html", {"request": request, "user": user})
+
 
 @app.get("/login.html", response_class=HTMLResponse)
 async def login_page(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
+
 @app.get("/registration.html", response_class=HTMLResponse)
 async def registration_page(request: Request):
     return templates.TemplateResponse("registration.html", {"request": request})
+
 
 @app.get("/hackathons.html", response_class=HTMLResponse)
 async def hackathons_page(request: Request):
     user = get_current_user(request)
     return templates.TemplateResponse("hackathons.html", {"request": request, "user": user})
 
+
 @app.get("/about.html", response_class=HTMLResponse)
 async def about_page(request: Request):
     user = get_current_user(request)
     return templates.TemplateResponse("about.html", {"request": request, "user": user})
 
+
 @app.get("/admin.html", response_class=HTMLResponse)
 async def admin_page(request: Request, user=Depends(require_admin)):
     return templates.TemplateResponse("admin.html", {"request": request, "user": user})
 
+
+@app.get("/profile.html", response_class=HTMLResponse)
+async def profile_page(request: Request):
+    user = get_current_user(request)
+    if not user:
+        from fastapi.responses import RedirectResponse
+        return RedirectResponse(url="/login.html", status_code=302)
+    return templates.TemplateResponse("profile.html", {"request": request, "user": user})
+
+
 # API роуты
 @app.post("/api/login")
 async def login(request: Request, credentials: UserLogin):
-    user = get_user_by_email(credentials.email)
-    if not user or credentials.password != user["password"]:  # Прямое сравнение паролей
+    # Приводим email к нижнему регистру для поиска
+    email_lower = credentials.email.lower()
+    user = get_user_by_email(email_lower)
+
+    if not user or credentials.password != user["password"]:
         raise HTTPException(status_code=401, detail="Неверный email или пароль")
 
     request.session["user_id"] = user["id"]
@@ -188,14 +116,12 @@ async def login(request: Request, credentials: UserLogin):
     user_response = {k: v for k, v in user.items() if k != "password"}
     return {"message": "Успешный вход", "user": user_response}
 
-@app.post("/api/logout")
-async def logout(request: Request):
-    request.session.clear()
-    return {"message": "Успешный выход"}
 
 @app.post("/api/register")
 async def register(request: Request, user_data: UserCreate):
-    if get_user_by_email(user_data.email):
+    # Приводим email к нижнему регистру для проверки
+    email_lower = user_data.email.lower()
+    if get_user_by_email(email_lower):
         raise HTTPException(status_code=400, detail="Пользователь с таким email уже существует")
 
     # Проверка уникальности telegram_nickname
@@ -213,8 +139,8 @@ async def register(request: Request, user_data: UserCreate):
 
     new_user = {
         "username": user_data.username,
-        "email": user_data.email,
-        "password": user_data.password,  # Пароль сохраняется в открытом виде
+        "email": user_data.email.lower(),  # Сохраняем email в нижнем регистре
+        "password": user_data.password,
         "age": user_data.age,
         "fio": user_data.fio,
         "telegram_nickname": user_data.telegram_nickname,
@@ -257,6 +183,13 @@ async def register(request: Request, user_data: UserCreate):
     user_response = {k: v for k, v in created_user.items() if k != "password"}
     return {"message": "Регистрация успешна", "user": user_response}
 
+
+@app.post("/api/logout")
+async def logout(request: Request):
+    request.session.clear()
+    return {"message": "Успешный выход"}
+
+
 @app.get("/api/user")
 async def get_user(request: Request):
     user = get_current_user(request)
@@ -264,6 +197,53 @@ async def get_user(request: Request):
         raise HTTPException(status_code=401, detail="Не авторизован")
     user_response = {k: v for k, v in user.items() if k != "password"}
     return user_response
+
+
+@app.put("/api/user")
+async def update_current_user(request: Request, user_data: dict):
+    """Обновление данных текущего пользователя"""
+    user = get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Не авторизован")
+
+    user_id = user["id"]
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Проверяем существование пользователя
+    cursor.execute("SELECT * FROM Users WHERE id = ?", (user_id,))
+    if not cursor.fetchone():
+        conn.close()
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+
+    # Обновляем только разрешенные поля (пользователь не может менять email, password, role)
+    allowed_fields = ['username', 'age', 'fio', 'telegram_nickname', 'basics_knowledge',
+                      'city', 'team_name', 'looking_for_team', 'hackathons', 'intensives']
+
+    update_fields = []
+    update_values = []
+
+    for field in allowed_fields:
+        if field in user_data:
+            update_fields.append(f"{field} = ?")
+            update_values.append(user_data[field])
+
+    if not update_fields:
+        conn.close()
+        raise HTTPException(status_code=400, detail="Нет полей для обновления")
+
+    update_values.append(user_id)
+    query = f"UPDATE Users SET {', '.join(update_fields)} WHERE id = ?"
+
+    cursor.execute(query, update_values)
+    conn.commit()
+    conn.close()
+
+    # Возвращаем обновленные данные пользователя
+    updated_user = get_user_by_id(user_id)
+    user_response = {k: v for k, v in updated_user.items() if k != "password"}
+    return {"message": "Профиль обновлен", "user": user_response}
+
 
 @app.get("/api/users")
 async def get_users(request: Request, admin=Depends(require_admin)):
@@ -278,6 +258,7 @@ async def get_users(request: Request, admin=Depends(require_admin)):
         user.pop("password", None)
 
     return users
+
 
 @app.get("/api/statistics")
 async def get_statistics(request: Request, admin=Depends(require_admin)):
@@ -321,6 +302,7 @@ async def get_statistics(request: Request, admin=Depends(require_admin)):
     }
     return stats
 
+
 @app.delete("/api/users/{user_id}")
 async def delete_user(user_id: int, request: Request, admin=Depends(require_admin)):
     # Проверяем, что пользователь не удаляет первого администратора
@@ -343,6 +325,7 @@ async def delete_user(user_id: int, request: Request, admin=Depends(require_admi
 
     return {"message": "Пользователь удалён"}
 
+
 @app.put("/api/users/{user_id}")
 async def update_user(user_id: int, user_data: dict, request: Request, admin=Depends(require_admin)):
     conn = get_db_connection()
@@ -356,7 +339,7 @@ async def update_user(user_id: int, user_data: dict, request: Request, admin=Dep
 
     # Обновляем только разрешенные поля
     allowed_fields = ['username', 'age', 'fio', 'telegram_nickname', 'basics_knowledge',
-                     'city', 'team_name', 'looking_for_team', 'hackathons', 'intensives']
+                      'city', 'team_name', 'looking_for_team', 'hackathons', 'intensives']
 
     update_fields = []
     update_values = []
@@ -379,6 +362,8 @@ async def update_user(user_id: int, user_data: dict, request: Request, admin=Dep
 
     return {"message": "Пользователь обновлен"}
 
+
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="127.0.0.1", port=8000)

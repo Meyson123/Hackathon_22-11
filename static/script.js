@@ -78,9 +78,9 @@ async function updateNavigation() {
                 e.preventDefault();
                 try {
                     await fetch('/api/logout', { method: 'POST' });
-                    window.location.href = 'index.html';
+                    window.location.href = '/';
                 } catch (error) {
-                    window.location.href = 'index.html';
+                    window.location.href = '/';
                 }
             });
         }
@@ -168,12 +168,12 @@ if (registrationForm) {
                 }
                 registrationForm.reset();
                 
-                // Redirect based on role
+                // Redirect based on role - ИСПРАВЛЕНО: index.html → /
                 setTimeout(() => {
                     if (result.user.role === 'admin') {
                         window.location.href = 'admin.html';
                     } else {
-                        window.location.href = 'index.html';
+                        window.location.href = '/';
                     }
                 }, 1500);
             } else {
@@ -196,6 +196,57 @@ if (registrationForm) {
             }
             if (successMessage) {
                 successMessage.style.display = 'none';
+            }
+        }
+    });
+}
+
+// Login form handling
+const loginForm = document.getElementById('loginForm');
+if (loginForm) {
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData(loginForm);
+        const data = {
+            email: formData.get('email'),
+            password: formData.get('password')
+        };
+
+        try {
+            const response = await fetch('/api/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                // Redirect based on role - ИСПРАВЛЕНО: index.html → /
+                if (result.user.role === 'admin') {
+                    window.location.href = 'admin.html';
+                } else {
+                    window.location.href = '/';
+                }
+            } else {
+                const errorElement = document.getElementById('errorMessage');
+                if (errorElement) {
+                    errorElement.textContent = result.detail || 'Ошибка входа';
+                    errorElement.style.display = 'block';
+                } else {
+                    alert(result.detail || 'Ошибка входа');
+                }
+            }
+        } catch (error) {
+            const errorElement = document.getElementById('errorMessage');
+            if (errorElement) {
+                errorElement.textContent = 'Ошибка соединения с сервером';
+                errorElement.style.display = 'block';
+            } else {
+                alert('Ошибка соединения с сервером');
             }
         }
     });
@@ -241,3 +292,18 @@ document.querySelectorAll('.feature-card').forEach(card => {
     observer.observe(card);
 });
 
+// Global logout handler - дополнительная защита
+document.addEventListener('DOMContentLoaded', function() {
+    // Обработчик для всех ссылок выхода
+    document.querySelectorAll('[id*="logout"], [href*="logout"]').forEach(logoutElement => {
+        logoutElement.addEventListener('click', async (e) => {
+            e.preventDefault();
+            try {
+                await fetch('/api/logout', { method: 'POST' });
+                window.location.href = '/';
+            } catch (error) {
+                window.location.href = '/';
+            }
+        });
+    });
+});

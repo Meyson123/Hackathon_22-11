@@ -25,7 +25,7 @@
                 <li><a href="about.html">О нас</a></li>
                 <li><a href="profile.html" id="profileLink" style="display: none;">Профиль</a></li>
                 <li><a href="login.html" id="loginLink">Вход</a></li>
-                <li><a href="#" id="logoutLink" style="display: none;">Выход</a></li>
+                <li><a href="/" id="logoutLink" style="display: none;">Выход</a></li>
                 <li><a href="admin.html" id="adminLink" style="display: none;">Админ</a></li>
             </ul>
         </div>
@@ -94,60 +94,55 @@
                 
                 <form id="registrationForm" class="registration-form">
                     <div class="form-group">
-                        <label for="fullName">Полное имя</label>
-                        <input type="text" id="fullName" name="fullName" required>
+                        <label for="fio">Фамилия Имя Отчество *</label>
+                        <input type="text" id="fio" name="fio" placeholder="Введите ваше полное имя" required>
                     </div>
 
                     <div class="form-group">
-                        <label for="email">Адрес электронной почты</label>
+                        <label for="email">Адрес электронной почты *</label>
                         <input type="email" id="email" name="email" required>
                     </div>
 
                     <div class="form-group">
-                        <label for="password">Пароль</label>
+                        <label for="password">Пароль *</label>
                         <input type="password" id="password" name="password" required>
                     </div>
 
                     <div class="form-group">
-                        <label for="phone">Номер телефона</label>
-                        <input type="tel" id="phone" name="phone" required>
+                        <label for="telegram_nickname">Telegram никнейм *</label>
+                        <input type="text" id="telegram_nickname" name="telegram_nickname" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="age">Возраст</label>
+                        <input type="number" id="age" name="age" min="14" max="100">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="city">Город</label>
+                        <input type="text" id="city" name="city">
+                    </div>
+
+                    <div class="form-group checkbox-group">
+                        <label>
+                            <input type="checkbox" id="looking_for_team" name="looking_for_team">
+                            <span>Ищу команду для участия</span>
+                        </label>
                     </div>
 
                     <div class="form-group" id="roleGroup">
-                        <label for="role">Я хочу</label>
+                        <label for="role">Роль *</label>
                         <select id="role" name="role" required>
-                            <option value="">Выберите вариант</option>
-                            <option value="participant">Участвовать в хакатонах</option>
-                            <option value="student">Записаться на интенсивные курсы</option>
+                            <option value="">Выберите роль</option>
+                            <option value="user">Участник</option>
                             <option value="case_holder">Кейсодержатель</option>
                         </select>
-                    </div>
-
-                    
-                    <div class="form-group" id="companyGroup" style="display: none;">
-                        <label for="companyName">Название компании</label>
-                        <input type="text" id="companyName" name="companyName" placeholder="Введите название компании">
-                    </div>
-                    
-                    <div class="form-group" id="companyDescriptionGroup" style="display: none;">
-                        <label for="companyDescription">Описание компании</label>
-                        <textarea id="companyDescription" name="companyDescription" rows="4" placeholder="Расскажите о вашей компании"></textarea>
-                    </div>
-
-                    <div class="form-group" id="legalAddressGroup" style="display: none;">
-                        <label for="legalAddress">Юридический адрес</label>
-                        <textarea id="legalAddress" name="legalAddress" rows="4" placeholder="Введите юридический адрес"></textarea>
-                    </div>
-
-                    <div class="form-group" id="officialWebsiteGroup" style="display: none;">
-                        <label for="officialWebsite">Официальный сайт</label>
-                        <input type="url" id="officialWebsite" name="officialWebsite" placeholder="https://example.com">
                     </div>
 
                     <div class="form-group checkbox-group">
                         <label>
                             <input type="checkbox" id="terms" name="terms" required>
-                            <span>Я согласен с условиями использования</span>
+                            <span>Я согласен с условиями использования *</span>
                         </label>
                     </div>
 
@@ -168,65 +163,115 @@
         if (typeof updateNavigation === 'function') {
             updateNavigation();
         }
-        
+
+        // Handle form submission
+        document.getElementById('registrationForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const submitButton = this.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            submitButton.textContent = 'Регистрация...';
+
+            const formData = new FormData(this);
+
+            // Используем ФИО как username
+            const fio = formData.get('fio');
+            const username = fio.split(' ')[0] + '_' + Math.random().toString(36).substr(2, 5); // Генерируем уникальное имя пользователя
+
+            const data = {
+                username: username,
+                fio: fio,
+                email: formData.get('email'),
+                password: formData.get('password'),
+                telegram_nickname: formData.get('telegram_nickname'),
+                age: formData.get('age') ? parseInt(formData.get('age')) : null,
+                city: formData.get('city'),
+                looking_for_team: formData.get('looking_for_team') === 'on',
+                role: formData.get('role'),
+                basics_knowledge: "", // Навыки будут добавляться в профиле
+                team_name: "", // Название команды убрано из формы
+                hackathons: "",
+                intensives: ""
+            };
+
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                let result;
+                const contentType = response.headers.get('content-type');
+
+                if (contentType && contentType.includes('application/json')) {
+                    result = await response.json();
+                } else {
+                    const text = await response.text();
+                    throw new Error(`Сервер вернул HTML вместо JSON. Возможно, ошибка на сервере. Статус: ${response.status}`);
+                }
+
+                if (response.ok) {
+                    document.getElementById('successMessage').style.display = 'block';
+                    document.getElementById('errorMessage').style.display = 'none';
+                    document.getElementById('registrationForm').reset();
+
+                    // Redirect to profile after successful registration
+                    setTimeout(() => {
+                        window.location.href = '/profile.html';
+                    }, 2000);
+                } else {
+                    document.getElementById('errorMessage').style.display = 'block';
+                    document.getElementById('errorMessage').textContent = result.detail || `Ошибка регистрации: ${response.status}`;
+                    document.getElementById('successMessage').style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                document.getElementById('errorMessage').style.display = 'block';
+                document.getElementById('errorMessage').textContent = error.message || 'Ошибка сети';
+                document.getElementById('successMessage').style.display = 'none';
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = 'Зарегистрироваться';
+            }
+        });
+
         // Handle registration type from URL parameter
         window.addEventListener('DOMContentLoaded', function() {
             const urlParams = new URLSearchParams(window.location.search);
             const registrationType = urlParams.get('type');
-            
+
             const roleSelect = document.getElementById('role');
-            const companyGroup = document.getElementById('companyGroup');
-            const companyDescriptionGroup = document.getElementById('companyDescriptionGroup');
-            const legalAddressGroup = document.getElementById('legalAddressGroup');
-            const officialWebsiteGroup = document.getElementById('officialWebsiteGroup');
             const title = document.getElementById('registrationTitle');
             const subtitle = document.getElementById('registrationSubtitle');
-            
-            // Function to toggle company fields visibility
-            function toggleCompanyFields(show) {
-                companyGroup.style.display = show ? 'block' : 'none';
-                companyDescriptionGroup.style.display = show ? 'block' : 'none';
-                legalAddressGroup.style.display = show ? 'block' : 'none';
-                officialWebsiteGroup.style.display = show ? 'block' : 'none';
-                
-                if (show) {
-                    document.getElementById('companyName').required = true;
-                    document.getElementById('companyDescription').required = true;
-                } else {
-                    document.getElementById('companyName').required = false;
-                    document.getElementById('companyDescription').required = false;
-                }
-            }
-            
-            // Handle role change
-            roleSelect.addEventListener('change', function() {
-                if (this.value === 'case_holder') {
-                    toggleCompanyFields(true);
-                } else {
-                    toggleCompanyFields(false);
-                }
-            });
-            
+
             if (registrationType === 'participant') {
                 // Set role to participant
-                roleSelect.value = 'participant';
+                roleSelect.value = 'user';
                 roleSelect.disabled = true;
-                toggleCompanyFields(false);
                 title.textContent = 'Регистрация участника';
                 subtitle.textContent = 'Заполните форму для участия в хакатонах и курсах';
             } else if (registrationType === 'case_holder') {
                 // Set role to case_holder
                 roleSelect.value = 'case_holder';
                 roleSelect.disabled = true;
-                toggleCompanyFields(true);
-                title.textContent = 'Регистрация кейсодержателя (Компания)';
+                title.textContent = 'Регистрация кейсодержателя';
                 subtitle.textContent = 'Заполните форму для размещения кейсов и организации хакатонов';
-            } else {
-                // Default: show all fields
-                toggleCompanyFields(false);
             }
         });
+
+        // Debug function to check what's being sent
+        window.debugRegistration = function() {
+            const formData = new FormData(document.getElementById('registrationForm'));
+            const data = {};
+            for (let [key, value] of formData.entries()) {
+                data[key] = value;
+            }
+            console.log('Form data:', data);
+            return data;
+        };
     </script>
 </body>
 </html>
-

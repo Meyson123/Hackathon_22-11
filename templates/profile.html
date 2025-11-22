@@ -18,6 +18,7 @@
             border-radius: 10px;
             margin-bottom: 2rem;
             text-align: center;
+            position: relative;
         }
         .profile-header h2 {
             margin: 0 0 0.5rem 0;
@@ -26,6 +27,23 @@
         .profile-header p {
             margin: 0;
             opacity: 0.9;
+        }
+        .edit-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .edit-btn:hover {
+            background: white;
+            color: #667eea;
         }
         .profile-content {
             display: grid;
@@ -44,6 +62,9 @@
             color: #667eea;
             border-bottom: 2px solid #667eea;
             padding-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         .profile-info-item {
             margin: 1rem 0;
@@ -59,6 +80,20 @@
         .profile-info-item span {
             color: #666;
         }
+        .profile-info-item input,
+        .profile-info-item select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 5px;
+            font-size: 1rem;
+            margin-top: 0.25rem;
+        }
+        .profile-info-item input:focus,
+        .profile-info-item select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
         .skills-list {
             display: flex;
             flex-wrap: wrap;
@@ -72,40 +107,104 @@
             border-radius: 20px;
             font-size: 0.9rem;
         }
-        .work-level-badge {
-            display: inline-block;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-weight: bold;
-            color: white;
-        }
-        .work-level-junior { background: #28a745; }
-        .work-level-middle { background: #ffc107; color: #333; }
-        .work-level-senior { background: #dc3545; }
-        .work-level-lead { background: #6f42c1; }
-        .experience-badge {
-            display: inline-block;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-weight: bold;
-            color: white;
-        }
-        .experience-beginner { background: #17a2b8; }
-        .experience-intermediate { background: #007bff; }
-        .experience-advanced { background: #6f42c1; }
-        .company-info {
-            background: #e7f3ff;
-            padding: 1rem;
-            border-radius: 5px;
+        .skills-selector {
+            display: none;
             margin-top: 1rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            max-height: 500px;
+            overflow-y: auto;
         }
-        .company-info h4 {
-            margin-top: 0;
+        .skills-selector.active {
+            display: block;
+        }
+        .skill-category {
+            margin-bottom: 1.5rem;
+        }
+        .skill-category h4 {
             color: #667eea;
+            margin-bottom: 0.75rem;
+            font-size: 1.1rem;
+        }
+        .skill-checkboxes {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 0.5rem;
+        }
+        .skill-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            background: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .skill-checkbox:hover {
+            background: #e5e7eb;
+        }
+        .skill-checkbox input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        .skill-checkbox label {
+            cursor: pointer;
+            flex: 1;
+            color: #333;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            justify-content: flex-end;
+        }
+        .btn {
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #4b5563;
         }
         .no-data {
             color: #999;
             font-style: italic;
+        }
+        .message {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        .message.success {
+            background: #10b981;
+            color: white;
+        }
+        .message.error {
+            background: #ef4444;
+            color: white;
+        }
+        .message.active {
+            display: block;
         }
     </style>
 </head>
@@ -128,7 +227,7 @@
                 <li><a href="about.html">О нас</a></li>
                 <li><a href="profile.html" class="active" id="profileLink" style="display: none;">Профиль</a></li>
                 <li><a href="login.html" id="loginLink">Вход</a></li>
-                <li><a href="#" id="logoutLink" style="display: none;">Выход</a></li>
+                <li><a href="/" id="logoutLink" style="display: none;">Выход</a></li>
                 <li><a href="admin.html" id="adminLink" style="display: none;">Админ</a></li>
             </ul>
         </div>
@@ -194,23 +293,43 @@
             <div class="profile-header">
                 <h2 id="profileName">Загрузка...</h2>
                 <p id="profileRole">Загрузка данных профиля...</p>
+                <button class="edit-btn" id="editBtn" onclick="toggleEditMode()">Редактировать</button>
             </div>
+
+            <div id="messageContainer"></div>
 
             <div class="profile-content">
                 <!-- Personal Information -->
                 <div class="profile-card">
                     <h3>Личная информация</h3>
                     <div class="profile-info-item">
+                        <strong>Имя пользователя</strong>
+                        <span id="profileUsername">-</span>
+                        <input type="text" id="editUsername" style="display: none;" />
+                    </div>
+                    <div class="profile-info-item">
                         <strong>Полное имя</strong>
                         <span id="profileFullName">-</span>
+                        <input type="text" id="editFullName" style="display: none;" />
                     </div>
                     <div class="profile-info-item">
                         <strong>Email</strong>
                         <span id="profileEmail">-</span>
                     </div>
                     <div class="profile-info-item">
-                        <strong>Телефон</strong>
-                        <span id="profilePhone">-</span>
+                        <strong>Возраст</strong>
+                        <span id="profileAge">-</span>
+                        <input type="number" id="editAge" style="display: none;" />
+                    </div>
+                    <div class="profile-info-item">
+                        <strong>Город</strong>
+                        <span id="profileCity">-</span>
+                        <input type="text" id="editCity" style="display: none;" />
+                    </div>
+                    <div class="profile-info-item">
+                        <strong>Telegram</strong>
+                        <span id="profileTelegram">-</span>
+                        <input type="text" id="editTelegram" style="display: none;" />
                     </div>
                     <div class="profile-info-item">
                         <strong>Роль</strong>
@@ -230,42 +349,113 @@
                         <div id="profileSkills" class="skills-list">
                             <span class="no-data">Не указано</span>
                         </div>
+                        <div id="skillsSelector" class="skills-selector">
+                            <!-- Skills will be populated here -->
+                        </div>
                     </div>
                     <div class="profile-info-item">
-                        <strong>Уровень опыта</strong>
-                        <div id="profileExperience">-</div>
+                        <strong>Команда</strong>
+                        <span id="profileTeamName">-</span>
                     </div>
                     <div class="profile-info-item">
-                        <strong>Уровень работы</strong>
-                        <div id="profileWorkLevel">-</div>
+                        <strong>Ищу команду</strong>
+                        <span id="profileLookingForTeam">-</span>
+                        <select id="editLookingForTeam" style="display: none;">
+                            <option value="false">Нет</option>
+                            <option value="true">Да</option>
+                        </select>
                     </div>
                 </div>
+            </div>
 
-                <!-- Company Information (if case_holder) -->
-                <div class="profile-card" id="companyCard" style="display: none;">
-                    <h3>Информация о компании</h3>
-                    <div class="company-info">
-                        <h4 id="companyName">-</h4>
-                        <p id="companyDescription" class="no-data">Описание не указано</p>
-                        <div class="profile-info-item" style="margin-top: 1rem;">
-                            <strong>Юридический адрес</strong>
-                            <span id="companyLegalAddress" class="no-data">Не указано</span>
-                        </div>
-                        <div class="profile-info-item">
-                            <strong>Официальный сайт</strong>
-                            <span id="companyWebsite" class="no-data">Не указано</span>
-                        </div>
-                    </div>
-                </div>
+            <div class="action-buttons" id="actionButtons" style="display: none;">
+                <button class="btn btn-secondary" onclick="cancelEdit()">Отмена</button>
+                <button class="btn btn-primary" onclick="saveProfile()">Сохранить</button>
             </div>
         </div>
     </main>
 
     <script src="/static/script.js"></script>
     <script>
+        let currentUser = null;
+        let isEditMode = false;
+
+        // Skills data structure
+        const skillsData = {
+            programmingLanguages: {
+                name: "Языки программирования",
+                skills: ["Python", "Java", "JavaScript", "C++", "C#", "Swift", "Ruby", "PHP", "Go (Golang)", "Rust", "Kotlin", "TypeScript", "Scala"]
+            },
+            frameworks: {
+                name: "Фреймворки",
+                skills: ["Django (Python)", "Spring Boot (Java)", "React (JavaScript)", "Angular (JavaScript)", "Vue.js (JavaScript)", "Flask (Python)", "Express.js (JavaScript)"]
+            },
+            libraries: {
+                name: "Библиотеки",
+                skills: ["NumPy", "Pandas", "TensorFlow/Keras", "Scikit-learn", "Matplotlib/Seaborn", "OpenCV"]
+            },
+            services: {
+                name: "Сервисы",
+                skills: ["AWS Lambda", "Google Cloud Functions", "MongoDB/PostgreSQL", "Redis", "RabbitMQ/Apache Kafka"]
+            },
+            otherSkills: {
+                name: "Другие навыки",
+                skills: ["Git/SVN", "Agile Development", "Testing and debugging", "Data analysis", "Web Design"]
+            },
+            softSkills: {
+                name: "Мягкие навыки",
+                skills: ["Teamwork", "Empathy", "Creativity and innovation", "Problem solving skills"]
+            },
+            securitySkills: {
+                name: "Навыки безопасности",
+                skills: ["Analysis and identification of vulnerabilities in the code", "Knowledge of Security Rules (OWASP)", "Writing secure code"]
+            }
+        };
+
         // Update navigation on load
         if (typeof updateNavigation === 'function') {
             updateNavigation();
+        }
+
+        // Initialize skills selector
+        function initSkillsSelector() {
+            const container = document.getElementById('skillsSelector');
+            container.innerHTML = '';
+
+            Object.keys(skillsData).forEach(categoryKey => {
+                const category = skillsData[categoryKey];
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'skill-category';
+
+                const title = document.createElement('h4');
+                title.textContent = category.name;
+                categoryDiv.appendChild(title);
+
+                const checkboxesDiv = document.createElement('div');
+                checkboxesDiv.className = 'skill-checkboxes';
+
+                category.skills.forEach(skill => {
+                    const checkboxDiv = document.createElement('div');
+                    checkboxDiv.className = 'skill-checkbox';
+
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.id = `skill-${categoryKey}-${skill}`;
+                    checkbox.value = skill;
+                    checkbox.dataset.category = categoryKey;
+
+                    const label = document.createElement('label');
+                    label.htmlFor = checkbox.id;
+                    label.textContent = skill;
+
+                    checkboxDiv.appendChild(checkbox);
+                    checkboxDiv.appendChild(label);
+                    checkboxesDiv.appendChild(checkboxDiv);
+                });
+
+                categoryDiv.appendChild(checkboxesDiv);
+                container.appendChild(categoryDiv);
+            });
         }
 
         // Load and display user profile
@@ -280,8 +470,8 @@
                     throw new Error('Ошибка загрузки профиля');
                 }
 
-                const user = await response.json();
-                displayProfile(user);
+                currentUser = await response.json();
+                displayProfile(currentUser);
             } catch (error) {
                 console.error('Ошибка загрузки профиля:', error);
                 document.querySelector('.profile-header h2').textContent = 'Ошибка загрузки';
@@ -291,7 +481,7 @@
 
         function displayProfile(user) {
             // Header
-            document.getElementById('profileName').textContent = user.fullName || 'Пользователь';
+            document.getElementById('profileName').textContent = user.fio || user.username || 'Пользователь';
             const roleLabels = {
                 'participant': 'Участник',
                 'student': 'Студент',
@@ -302,13 +492,16 @@
             document.getElementById('profileRole').textContent = roleLabels[user.role] || user.role || 'Пользователь';
 
             // Personal Information
-            document.getElementById('profileFullName').textContent = user.fullName || '-';
+            document.getElementById('profileUsername').textContent = user.username || '-';
+            document.getElementById('profileFullName').textContent = user.fio || '-';
             document.getElementById('profileEmail').textContent = user.email || '-';
-            document.getElementById('profilePhone').textContent = user.phone || '-';
+            document.getElementById('profileAge').textContent = user.age || '-';
+            document.getElementById('profileCity').textContent = user.city || '-';
+            document.getElementById('profileTelegram').textContent = user.telegram_nickname || '-';
             document.getElementById('profileRoleText').textContent = roleLabels[user.role] || user.role || '-';
-            
-            if (user.createdAt) {
-                const date = new Date(user.createdAt);
+
+            if (user.created_at) {
+                const date = new Date(user.created_at);
                 document.getElementById('profileCreatedAt').textContent = date.toLocaleDateString('ru-RU', {
                     year: 'numeric',
                     month: 'long',
@@ -318,12 +511,12 @@
                 document.getElementById('profileCreatedAt').textContent = '-';
             }
 
-            // Skills
+            // Skills - use basics_knowledge field
             const skillsContainer = document.getElementById('profileSkills');
-            if (user.skills && user.skills.trim()) {
-                const skills = user.skills.split(',').map(s => s.trim()).filter(s => s);
+            if (user.basics_knowledge && user.basics_knowledge.trim()) {
+                const skills = user.basics_knowledge.split(',').map(s => s.trim()).filter(s => s);
                 if (skills.length > 0) {
-                    skillsContainer.innerHTML = skills.map(skill => 
+                    skillsContainer.innerHTML = skills.map(skill =>
                         `<span class="skill-tag">${skill}</span>`
                     ).join('');
                 } else {
@@ -333,58 +526,165 @@
                 skillsContainer.innerHTML = '<span class="no-data">Не указано</span>';
             }
 
-            // Experience Level
-            const experienceContainer = document.getElementById('profileExperience');
-            const experienceLabels = {
-                'beginner': { text: 'Начинающий', class: 'experience-beginner' },
-                'intermediate': { text: 'Средний', class: 'experience-intermediate' },
-                'advanced': { text: 'Продвинутый', class: 'experience-advanced' }
-            };
-            if (user.experience && experienceLabels[user.experience]) {
-                const exp = experienceLabels[user.experience];
-                experienceContainer.innerHTML = `<span class="experience-badge ${exp.class}">${exp.text}</span>`;
-            } else {
-                experienceContainer.innerHTML = '<span class="no-data">Не указано</span>';
-            }
+            // Team info
+            document.getElementById('profileTeamName').textContent = user.team_name || '-';
+            document.getElementById('profileLookingForTeam').textContent = user.looking_for_team ? 'Да' : 'Нет';
+        }
 
-            // Work Level
-            const workLevelContainer = document.getElementById('profileWorkLevel');
-            const workLevelLabels = {
-                'junior': { text: 'Junior', class: 'work-level-junior' },
-                'middle': { text: 'Middle', class: 'work-level-middle' },
-                'senior': { text: 'Senior', class: 'work-level-senior' },
-                'lead': { text: 'Lead', class: 'work-level-lead' }
-            };
-            if (user.workLevel && workLevelLabels[user.workLevel]) {
-                const wl = workLevelLabels[user.workLevel];
-                workLevelContainer.innerHTML = `<span class="work-level-badge ${wl.class}">${wl.text}</span>`;
-            } else {
-                workLevelContainer.innerHTML = '<span class="no-data">Не указано</span>';
-            }
+        function toggleEditMode() {
+            isEditMode = !isEditMode;
 
-            // Company Information (if case_holder)
-            if (user.role === 'case_holder') {
-                document.getElementById('companyCard').style.display = 'block';
-                document.getElementById('companyName').textContent = user.companyName || '-';
-                document.getElementById('companyDescription').textContent = user.companyDescription || 'Описание не указано';
-                document.getElementById('companyDescription').className = user.companyDescription ? '' : 'no-data';
-                document.getElementById('companyLegalAddress').textContent = user.legalAddress || 'Не указано';
-                document.getElementById('companyLegalAddress').className = user.legalAddress ? '' : 'no-data';
-                if (user.officialWebsite) {
-                    document.getElementById('companyWebsite').innerHTML = `<a href="${user.officialWebsite}" target="_blank">${user.officialWebsite}</a>`;
-                    document.getElementById('companyWebsite').className = '';
-                } else {
-                    document.getElementById('companyWebsite').textContent = 'Не указано';
-                    document.getElementById('companyWebsite').className = 'no-data';
-                }
+            if (isEditMode) {
+                enterEditMode();
             } else {
-                document.getElementById('companyCard').style.display = 'none';
+                exitEditMode();
             }
         }
 
-        // Load profile on page load
-        window.addEventListener('DOMContentLoaded', loadProfile);
+        function enterEditMode() {
+            if (!currentUser) return;
+
+            // Show edit inputs
+            document.getElementById('editUsername').style.display = 'block';
+            document.getElementById('editUsername').value = currentUser.username || '';
+            document.getElementById('profileUsername').style.display = 'none';
+
+            document.getElementById('editFullName').style.display = 'block';
+            document.getElementById('editFullName').value = currentUser.fio || '';
+            document.getElementById('profileFullName').style.display = 'none';
+
+            document.getElementById('editAge').style.display = 'block';
+            document.getElementById('editAge').value = currentUser.age || '';
+            document.getElementById('profileAge').style.display = 'none';
+
+            document.getElementById('editCity').style.display = 'block';
+            document.getElementById('editCity').value = currentUser.city || '';
+            document.getElementById('profileCity').style.display = 'none';
+
+            document.getElementById('editTelegram').style.display = 'block';
+            document.getElementById('editTelegram').value = currentUser.telegram_nickname || '';
+            document.getElementById('profileTelegram').style.display = 'none';
+
+            // Поле команды убрано из редактирования
+            document.getElementById('editLookingForTeam').style.display = 'block';
+            document.getElementById('editLookingForTeam').value = currentUser.looking_for_team ? 'true' : 'false';
+            document.getElementById('profileLookingForTeam').style.display = 'none';
+
+            // Show skills selector
+            document.getElementById('skillsSelector').classList.add('active');
+            document.getElementById('profileSkills').style.display = 'none';
+
+            // Load selected skills
+            if (currentUser.basics_knowledge) {
+                const selectedSkills = currentUser.basics_knowledge.split(',').map(s => s.trim());
+                document.querySelectorAll('#skillsSelector input[type="checkbox"]').forEach(checkbox => {
+                    if (selectedSkills.includes(checkbox.value)) {
+                        checkbox.checked = true;
+                    }
+                });
+            }
+
+            // Show action buttons
+            document.getElementById('actionButtons').style.display = 'flex';
+            document.getElementById('editBtn').textContent = 'Отмена';
+        }
+
+        function exitEditMode() {
+            // Hide edit inputs
+            document.getElementById('editUsername').style.display = 'none';
+            document.getElementById('profileUsername').style.display = 'block';
+
+            document.getElementById('editFullName').style.display = 'none';
+            document.getElementById('profileFullName').style.display = 'block';
+
+            document.getElementById('editAge').style.display = 'none';
+            document.getElementById('profileAge').style.display = 'block';
+
+            document.getElementById('editCity').style.display = 'none';
+            document.getElementById('profileCity').style.display = 'block';
+
+            document.getElementById('editTelegram').style.display = 'none';
+            document.getElementById('profileTelegram').style.display = 'block';
+
+            // Поле команды убрано из редактирования
+            document.getElementById('editLookingForTeam').style.display = 'none';
+            document.getElementById('profileLookingForTeam').style.display = 'block';
+
+            // Hide skills selector
+            document.getElementById('skillsSelector').classList.remove('active');
+            document.getElementById('profileSkills').style.display = 'flex';
+
+            // Hide action buttons
+            document.getElementById('actionButtons').style.display = 'none';
+            document.getElementById('editBtn').textContent = 'Редактировать';
+        }
+
+        function cancelEdit() {
+            isEditMode = false;
+            exitEditMode();
+        }
+
+        async function saveProfile() {
+            try {
+                // Collect form data
+                const selectedSkills = Array.from(document.querySelectorAll('#skillsSelector input[type="checkbox"]:checked'))
+                    .map(cb => cb.value);
+                const skillsString = selectedSkills.join(',');
+
+                const updateData = {
+                    username: document.getElementById('editUsername').value,
+                    fio: document.getElementById('editFullName').value,
+                    age: document.getElementById('editAge').value ? parseInt(document.getElementById('editAge').value) : null,
+                    city: document.getElementById('editCity').value,
+                    telegram_nickname: document.getElementById('editTelegram').value,
+                    looking_for_team: document.getElementById('editLookingForTeam').value === 'true',
+                    basics_knowledge: skillsString
+                    // team_name убран из редактируемых полей
+                };
+
+                const response = await fetch('/api/user', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updateData)
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Ошибка обновления профиля');
+                }
+
+                const result = await response.json();
+                currentUser = result.user;
+
+                // Show success message
+                showMessage('Профиль успешно обновлен!', 'success');
+
+                // Exit edit mode and reload profile
+                isEditMode = false;
+                exitEditMode();
+                displayProfile(currentUser);
+
+            } catch (error) {
+                console.error('Ошибка сохранения профиля:', error);
+                showMessage('Ошибка: ' + error.message, 'error');
+            }
+        }
+
+        function showMessage(text, type) {
+            const container = document.getElementById('messageContainer');
+            container.innerHTML = `<div class="message ${type} active">${text}</div>`;
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 3000);
+        }
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            initSkillsSelector();
+            loadProfile();
+        });
     </script>
 </body>
 </html>
-

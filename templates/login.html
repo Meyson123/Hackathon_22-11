@@ -114,56 +114,100 @@
 
     <script src="/static/script.js"></script>
     <script>
-        // Login form handling
-        const loginForm = document.getElementById('loginForm');
+    // Login form handling
+    const loginForm = document.getElementById('loginForm');
+
+    async function handleLogin() {
         const errorMessage = document.getElementById('errorMessage');
         const successMessage = document.getElementById('successMessage');
+        const submitButton = loginForm.querySelector('button[type="submit"]');
 
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const formData = new FormData(loginForm);
-            const data = {
-                email: formData.get('email'),
-                password: formData.get('password')
-            };
+        submitButton.disabled = true;
+        submitButton.textContent = 'Вход...';
 
-            try {
-                const response = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
-                });
+        const formData = new FormData(loginForm);
+        const data = {
+            email: formData.get('email'),
+            password: formData.get('password')
+        };
 
-                const result = await response.json();
+        console.log('Sending login request:', data);
 
-                if (response.ok) {
-                    successMessage.textContent = 'Успешный вход! Перенаправление...';
-                    successMessage.style.display = 'block';
-                    errorMessage.style.display = 'none';
-                    
-                    // Redirect based on role
-                    setTimeout(() => {
-                        if (result.user.role === 'admin') {
-                            window.location.href = 'admin.html';
-                        } else {
-                            window.location.href = 'index.html';
-                        }
-                    }, 1000);
-                } else {
-                    errorMessage.textContent = result.error || 'Ошибка входа';
-                    errorMessage.style.display = 'block';
-                    successMessage.style.display = 'none';
-                }
-            } catch (error) {
-                errorMessage.textContent = 'Ошибка соединения с сервером';
+        try {
+            const response = await fetch('/api/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            let result;
+            const contentType = response.headers.get('content-type');
+
+            if (contentType && contentType.includes('application/json')) {
+                result = await response.json();
+            } else {
+                const text = await response.text();
+                throw new Error(`Сервер вернул HTML вместо JSON. Статус: ${response.status}`);
+            }
+
+            console.log('Login response:', result, 'Status:', response.status);
+
+            if (response.ok) {
+                successMessage.textContent = 'Успешный вход! Перенаправление...';
+                successMessage.style.display = 'block';
+                errorMessage.style.display = 'none';
+
+                // Redirect based on role
+                setTimeout(() => {
+                    if (result.user.role === 'admin') {
+                        window.location.href = 'admin.html';
+                    } else {
+                        window.location.href = '/';
+                    }
+                }, 1000);
+            } else {
+                errorMessage.textContent = result.detail || `Ошибка входа: ${response.status}`;
                 errorMessage.style.display = 'block';
                 successMessage.style.display = 'none';
             }
-        });
-    </script>
+        } catch (error) {
+            console.error('Login error:', error);
+            errorMessage.textContent = error.message || 'Ошибка соединения с сервером';
+            errorMessage.style.display = 'block';
+            successMessage.style.display = 'none';
+        } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Войти';
+        }
+    }
+
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await handleLogin();
+    });
+
+    // Debug: Check URL parameters with proper decoding and auto-submit
+    window.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const email = urlParams.get('email');
+        const password = urlParams.get('password');
+
+        if (email && password) {
+            // Декодируем email (превращаем %40 обратно в @)
+            const decodedEmail = decodeURIComponent(email);
+            document.getElementById('email').value = decodedEmail;
+            document.getElementById('password').value = password;
+            console.log('Auto-filled credentials from URL:', { email: decodedEmail, password });
+
+            // Автоматически отправляем форму через небольшую задержку
+            console.log('Auto-submitting form in 1 second...');
+            setTimeout(() => {
+                handleLogin();
+            }, 1000);
+        }
+    });
+</script>
 </body>
 </html>
-
