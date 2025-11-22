@@ -314,39 +314,29 @@
             }
         }
 
-        // Load hackathons - ИСПРАВЛЕННАЯ ВЕРСИЯ
+        // Load hackathons
         async function loadHackathons() {
             try {
-                // Используем английские статусы как в базе данных
                 const [upcoming, ongoing, completed] = await Promise.all([
                     fetch('/api/hackathons?status_filter=upcoming').then(r => r.json()),
                     fetch('/api/hackathons?status_filter=ongoing').then(r => r.json()),
                     fetch('/api/hackathons?status_filter=completed').then(r => r.json())
                 ]);
 
-                console.log('Loaded hackathons:', { upcoming, ongoing, completed }); // для отладки
-
                 renderHackathons(upcoming, 'upcoming-hackathons', 'upcoming');
                 renderHackathons(ongoing, 'ongoing-hackathons', 'ongoing');
                 renderHackathons(completed, 'completed-hackathons', 'completed');
             } catch (error) {
                 console.error('Error loading hackathons:', error);
-                // Показываем сообщения об ошибке
-                document.getElementById('upcoming-hackathons').innerHTML = '<p>Ошибка загрузки хакатонов</p>';
-                document.getElementById('ongoing-hackathons').innerHTML = '<p>Ошибка загрузки хакатонов</p>';
-                document.getElementById('completed-hackathons').innerHTML = '<p>Ошибка загрузки хакатонов</p>';
             }
         }
 
         function renderHackathons(hackathons, containerId, status) {
             const container = document.getElementById(containerId);
-            console.log(`Rendering ${containerId}:`, hackathons); // для отладки
-
-            if (!hackathons || hackathons.length === 0) {
+            if (hackathons.length === 0) {
                 container.innerHTML = '<p>Хакатоны не найдены</p>';
                 return;
             }
-
 
             container.innerHTML = hackathons.map(h => {
                 const startDate = new Date(h.start_date);
@@ -632,7 +622,7 @@
             }
         }
         
-        // Filter functionality - ИСПРАВЛЕННАЯ ВЕРСИЯ
+        // Filter functionality
         const filterBtns = document.querySelectorAll('.filter-btn');
         const hackathonSections = document.querySelectorAll('.hackathons-section');
 
@@ -653,24 +643,18 @@
                 const targetSection = document.getElementById(filter);
                 if (targetSection) {
                     targetSection.style.display = 'block';
+                    // Scroll to the section smoothly
+                    setTimeout(() => {
+                        targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 100);
                 }
             });
         });
 
-        // Initialize on page load - ДОБАВЬТЕ ЭТОТ КОД
+        // Initialize on page load
         window.addEventListener('DOMContentLoaded', async () => {
             await loadUserData();
             await loadHackathons();
-
-            // Показываем первую вкладку по умолчанию
-            const defaultTab = document.querySelector('.filter-btn.active');
-            if (defaultTab) {
-                const defaultFilter = defaultTab.getAttribute('data-filter');
-                const defaultSection = document.getElementById(defaultFilter);
-                if (defaultSection) {
-                    defaultSection.style.display = 'block';
-                }
-            }
         });
     </script>
 </body>

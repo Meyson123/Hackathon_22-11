@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход администратора - Хакатон Хаб</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <style>
+        .admin-login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 2rem;
+        }
+        .admin-login-card {
+            background: white;
+            border-radius: 12px;
+            padding: 3rem;
+            max-width: 450px;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        .admin-login-card h2 {
+            color: #667eea;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+        .admin-login-card .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 2rem;
+        }
+        .admin-badge {
+            display: inline-block;
+            background: #fef3c7;
+            color: #92400e;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        .message {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        .message.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+        .message.success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+        .message.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-login-container">
+        <div class="admin-login-card">
+            <div style="text-align: center; margin-bottom: 1rem;">
+                <span class="admin-badge">🔐 Администратор</span>
+            </div>
+            <h2>Вход в панель администратора</h2>
+            <p class="subtitle">Введите учетные данные для доступа</p>
+            
+            <div id="errorMessage" class="message error"></div>
+            <div id="successMessage" class="message success"></div>
+            
+            <form id="adminLoginForm" class="registration-form">
+                <div class="form-group">
+                    <label for="adminLogin">Логин</label>
+                    <input type="text" id="adminLogin" name="login" required autocomplete="username">
+                </div>
+
+                <div class="form-group">
+                    <label for="adminPassword">Пароль</label>
+                    <input type="password" id="adminPassword" name="password" required autocomplete="current-password">
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-full">Войти</button>
+            </form>
+            
+            <div style="text-align: center; margin-top: 2rem;">
+                <a href="/" style="color: #667eea; text-decoration: none;">← Вернуться на главную</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const adminLoginForm = document.getElementById('adminLoginForm');
+        const errorMessage = document.getElementById('errorMessage');
+        const successMessage = document.getElementById('successMessage');
+
+        function showMessage(text, type) {
+            if (type === 'error') {
+                errorMessage.textContent = text;
+                errorMessage.classList.add('active');
+                successMessage.classList.remove('active');
+            } else {
+                successMessage.textContent = text;
+                successMessage.classList.add('active');
+                errorMessage.classList.remove('active');
+            }
+        }
+
+        adminLoginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const login = document.getElementById('adminLogin').value;
+            const password = document.getElementById('adminPassword').value;
+
+            try {
+                const response = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        login: login,
+                        password: password
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showMessage('Успешный вход! Перенаправление...', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/admin.html';
+                    }, 1000);
+                } else {
+                    showMessage(result.detail || 'Неверный логин или пароль', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('Ошибка соединения с сервером', 'error');
+            }
+        });
+    </script>
+</body>
+</html>
+

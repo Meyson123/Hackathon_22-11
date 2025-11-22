@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Аналитика - Админ</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        .analytics-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .analytics-card h3 {
+            color: #667eea;
+            margin-top: 0;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 0.5rem;
+        }
+        .metric-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .metric-item:last-child {
+            border-bottom: none;
+        }
+        .metric-label {
+            color: #6b7280;
+        }
+        .metric-value {
+            font-weight: bold;
+            color: #1f2937;
+            font-size: 1.1rem;
+        }
+        .chart-container {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        .chart-container h3 {
+            color: #667eea;
+            margin-top: 0;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .table-container {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .data-table th,
+        .data-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .data-table th {
+            background: #f3f4f6;
+            font-weight: 600;
+            color: #374151;
+        }
+        .data-table tr:hover {
+            background: #f9fafb;
+        }
+    </style>
+</head>
+<body>
+    <!-- Upper Navigation Hub -->
+    <nav class="top-nav">
+        <div class="nav-container">
+            <button class="menu-btn" id="menuBtn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="logo">
+                <h1>Хакатон Хаб - Админ</h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="/">Главная</a></li>
+                <li><a href="/admin.html">Панель администратора</a></li>
+                <li><a href="/admin-analytics.html" class="active">Аналитика</a></li>
+                <li><a href="/" id="logoutBtn">Выход</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="admin-container">
+            <h2 style="color: #667eea; margin-bottom: 2rem;">Аналитика и статистика</h2>
+
+            <!-- Metrics Cards -->
+            <div class="analytics-grid">
+                <div class="analytics-card">
+                    <h3>Участники</h3>
+                    <div class="metric-item">
+                        <span class="metric-label">Всего участников</span>
+                        <span class="metric-value" id="metricTotalUsers">-</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Активных сейчас</span>
+                        <span class="metric-value" id="metricActiveUsers">-</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">За этот месяц</span>
+                        <span class="metric-value" id="metricUsersThisMonth">-</span>
+                    </div>
+                </div>
+
+                <div class="analytics-card">
+                    <h3>Хакатоны</h3>
+                    <div class="metric-item">
+                        <span class="metric-label">Всего хакатонов</span>
+                        <span class="metric-value" id="metricTotalHackathons">-</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Предстоящих</span>
+                        <span class="metric-value" id="metricUpcomingHackathons">-</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Текущих</span>
+                        <span class="metric-value" id="metricOngoingHackathons">-</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Завершённых</span>
+                        <span class="metric-value" id="metricCompletedHackathons">-</span>
+                    </div>
+                </div>
+
+                <div class="analytics-card">
+                    <h3>Команды</h3>
+                    <div class="metric-item">
+                        <span class="metric-label">Всего команд</span>
+                        <span class="metric-value" id="metricTotalTeams">-</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Активных команд</span>
+                        <span class="metric-value" id="metricActiveTeams">-</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Средний размер</span>
+                        <span class="metric-value" id="metricAvgTeamSize">-</span>
+                    </div>
+                </div>
+
+                <div class="analytics-card">
+                    <h3>Эксперты</h3>
+                    <div class="metric-item">
+                        <span class="metric-label">Всего экспертов</span>
+                        <span class="metric-value" id="metricTotalExperts">-</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Активных экспертов</span>
+                        <span class="metric-value" id="metricActiveExperts">-</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Активность экспертов</span>
+                        <span class="metric-value" id="metricExpertActivity">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="chart-container">
+                <h3>Регистрации пользователей по месяцам</h3>
+                <canvas id="usersChart"></canvas>
+            </div>
+
+            <div class="chart-container">
+                <h3>Распределение участников по ролям</h3>
+                <canvas id="rolesChart"></canvas>
+            </div>
+
+            <!-- Tables -->
+            <div class="table-container">
+                <h3 style="color: #667eea; margin-top: 0; border-bottom: 2px solid #667eea; padding-bottom: 0.5rem; margin-bottom: 1rem;">Топ хакатонов по количеству участников</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Название</th>
+                            <th>Дата начала</th>
+                            <th>Участников</th>
+                            <th>Команд</th>
+                            <th>Статус</th>
+                        </tr>
+                    </thead>
+                    <tbody id="topHackathonsTable">
+                        <tr><td colspan="5">Загрузка...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script src="/static/script.js"></script>
+    <script>
+        let usersChart = null;
+        let rolesChart = null;
+
+        // Check admin auth
+        async function checkAdminAuth() {
+            try {
+                const response = await fetch('/api/user');
+                if (!response.ok) {
+                    window.location.href = '/admin-login.html';
+                    return;
+                }
+                const user = await response.json();
+                if (user.role !== 'admin') {
+                    window.location.href = '/admin-login.html';
+                    return;
+                }
+            } catch (error) {
+                window.location.href = '/admin-login.html';
+            }
+        }
+
+        async function loadAnalytics() {
+            try {
+                // Load statistics
+                const statsResponse = await fetch('/api/statistics');
+                if (statsResponse.ok) {
+                    const stats = await statsResponse.json();
+                    document.getElementById('metricTotalUsers').textContent = stats.totalUsers || 0;
+                    document.getElementById('metricUsersThisMonth').textContent = stats.usersThisMonth || 0;
+                }
+
+                // Load hackathons
+                const hackathonsResponse = await fetch('/api/hackathons');
+                if (hackathonsResponse.ok) {
+                    const hackathons = await hackathonsResponse.json();
+                    const now = new Date();
+                    const upcoming = hackathons.filter(h => new Date(h.start_date) > now).length;
+                    const ongoing = hackathons.filter(h => {
+                        const start = new Date(h.start_date);
+                        const end = new Date(h.end_date);
+                        return start <= now && end >= now;
+                    }).length;
+                    const completed = hackathons.filter(h => new Date(h.end_date) < now).length;
+
+                    document.getElementById('metricTotalHackathons').textContent = hackathons.length;
+                    document.getElementById('metricUpcomingHackathons').textContent = upcoming;
+                    document.getElementById('metricOngoingHackathons').textContent = ongoing;
+                    document.getElementById('metricCompletedHackathons').textContent = completed;
+
+                    // Load teams for each hackathon
+                    let totalTeams = 0;
+                    const hackathonsWithTeams = await Promise.all(hackathons.map(async (h) => {
+                        try {
+                            const teamsResponse = await fetch(`/api/hackathons/${h.id}/teams`);
+                            if (teamsResponse.ok) {
+                                const teams = await teamsResponse.json();
+                                totalTeams += teams.length;
+                                let totalMembers = 0;
+                                teams.forEach(t => {
+                                    totalMembers += t.member_count || 0;
+                                });
+                                return {
+                                    ...h,
+                                    teamsCount: teams.length,
+                                    membersCount: totalMembers
+                                };
+                            }
+                        } catch (error) {
+                            console.error(`Error loading teams for hackathon ${h.id}:`, error);
+                        }
+                        return { ...h, teamsCount: 0, membersCount: 0 };
+                    }));
+
+                    document.getElementById('metricTotalTeams').textContent = totalTeams;
+                    document.getElementById('metricActiveTeams').textContent = totalTeams;
+
+                    // Calculate average team size
+                    let totalTeamMembers = 0;
+                    let teamsWithMembers = 0;
+                    for (const h of hackathonsWithTeams) {
+                        try {
+                            const teamsResponse = await fetch(`/api/hackathons/${h.id}/teams`);
+                            if (teamsResponse.ok) {
+                                const teams = await teamsResponse.json();
+                                teams.forEach(t => {
+                                    if (t.member_count > 0) {
+                                        totalTeamMembers += t.member_count;
+                                        teamsWithMembers++;
+                                    }
+                                });
+                            }
+                        } catch (error) {
+                            // Ignore
+                        }
+                    }
+                    const avgTeamSize = teamsWithMembers > 0 ? (totalTeamMembers / teamsWithMembers).toFixed(1) : 0;
+                    document.getElementById('metricAvgTeamSize').textContent = avgTeamSize;
+
+                    // Top hackathons table
+                    hackathonsWithTeams.sort((a, b) => b.membersCount - a.membersCount);
+                    const topHackathons = hackathonsWithTeams.slice(0, 10);
+                    const tableBody = document.getElementById('topHackathonsTable');
+                    if (topHackathons.length === 0) {
+                        tableBody.innerHTML = '<tr><td colspan="5">Нет данных</td></tr>';
+                    } else {
+                        tableBody.innerHTML = topHackathons.map(h => {
+                            const startDate = new Date(h.start_date);
+                            const now = new Date();
+                            let status = 'Предстоящий';
+                            if (startDate <= now && new Date(h.end_date) >= now) {
+                                status = 'Текущий';
+                            } else if (new Date(h.end_date) < now) {
+                                status = 'Завершён';
+                            }
+                            return `
+                                <tr>
+                                    <td>${h.name}</td>
+                                    <td>${startDate.toLocaleDateString('ru-RU')}</td>
+                                    <td>${h.membersCount}</td>
+                                    <td>${h.teamsCount}</td>
+                                    <td>${status}</td>
+                                </tr>
+                            `;
+                        }).join('');
+                    }
+                }
+
+                // Load experts
+                try {
+                    const usersResponse = await fetch('/api/users');
+                    if (usersResponse.ok) {
+                        const users = await usersResponse.json();
+                        const experts = users.filter(u => u.role === 'expert');
+                        document.getElementById('metricTotalExperts').textContent = experts.length;
+                        document.getElementById('metricActiveExperts').textContent = experts.length;
+                    }
+                } catch (error) {
+                    console.error('Error loading experts:', error);
+                }
+
+                // Load users for charts
+                try {
+                    const usersResponse = await fetch('/api/users');
+                    if (usersResponse.ok) {
+                        const users = await usersResponse.json();
+                        updateUsersChart(users);
+                        updateRolesChart(users);
+                    }
+                } catch (error) {
+                    console.error('Error loading users for charts:', error);
+                }
+            } catch (error) {
+                console.error('Error loading analytics:', error);
+            }
+        }
+
+        function updateUsersChart(users) {
+            // Group users by month
+            const monthlyData = {};
+            users.forEach(user => {
+                if (user.created_at) {
+                    const date = new Date(user.created_at);
+                    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                    monthlyData[monthKey] = (monthlyData[monthKey] || 0) + 1;
+                }
+            });
+
+            const labels = Object.keys(monthlyData).sort();
+            const data = labels.map(key => monthlyData[key]);
+
+            const ctx = document.getElementById('usersChart').getContext('2d');
+            if (usersChart) {
+                usersChart.destroy();
+            }
+            usersChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Регистраций',
+                        data: data,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateRolesChart(users) {
+            const roleCounts = {};
+            users.forEach(user => {
+                const role = user.role || 'user';
+                roleCounts[role] = (roleCounts[role] || 0) + 1;
+            });
+
+            const labels = Object.keys(roleCounts);
+            const data = labels.map(key => roleCounts[key]);
+            const colors = ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#00f2fe'];
+
+            const ctx = document.getElementById('rolesChart').getContext('2d');
+            if (rolesChart) {
+                rolesChart.destroy();
+            }
+            rolesChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: colors.slice(0, labels.length)
+                    }]
+                },
+                options: {
+                    responsive: true
+                }
+            });
+        }
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+            e.preventDefault();
+            try {
+                await fetch('/api/logout');
+                window.location.href = '/admin-login.html';
+            } catch (error) {
+                window.location.href = '/admin-login.html';
+            }
+        });
+
+        // Initialize
+        window.addEventListener('DOMContentLoaded', async () => {
+            await checkAdminAuth();
+            await loadAnalytics();
+            setInterval(loadAnalytics, 60000); // Refresh every minute
+        });
+    </script>
+</body>
+</html>
+
