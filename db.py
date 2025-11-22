@@ -19,13 +19,10 @@ def init_database():
             age INTEGER,
             fio TEXT,
             telegram_nickname TEXT UNIQUE,
-            alls INTEGER DEFAULT 0,
             basics_knowledge TEXT,
             city TEXT,
             team_name TEXT,
             looking_for_team BOOLEAN DEFAULT FALSE,
-            hackathons TEXT DEFAULT '',
-            intensives TEXT DEFAULT '',
             role TEXT NOT NULL DEFAULT 'user',
             created_at TEXT NOT NULL
         )
@@ -62,18 +59,6 @@ def init_database():
             UNIQUE(hackathon_id, name)
         )
     ''')
-    
-    # Миграция: добавляем колонку description если её нет
-    try:
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='Teams'")
-        if cursor.fetchone():
-            cursor.execute("PRAGMA table_info(Teams)")
-            columns = [column[1] for column in cursor.fetchall()]
-            if 'description' not in columns:
-                cursor.execute("ALTER TABLE Teams ADD COLUMN description TEXT")
-                conn.commit()
-    except (sqlite3.OperationalError, sqlite3.DatabaseError):
-        pass
 
     # Создание таблицы участий (Participation) - связывает пользователя, хакатон, роль и репутацию
     cursor.execute('''
@@ -92,19 +77,6 @@ def init_database():
             UNIQUE(user_id, hackathon_id)
         )
     ''')
-    
-    # Миграция: добавляем колонку team_id если её нет (для существующих БД)
-    try:
-        # Проверяем, существует ли таблица и колонка
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='Participations'")
-        if cursor.fetchone():
-            cursor.execute("PRAGMA table_info(Participations)")
-            columns = [column[1] for column in cursor.fetchall()]
-            if 'team_id' not in columns:
-                cursor.execute("ALTER TABLE Participations ADD COLUMN team_id INTEGER")
-                conn.commit()
-    except (sqlite3.OperationalError, sqlite3.DatabaseError):
-        pass  # Игнорируем ошибки
 
     # Создание таблицы истории изменений репутации
     cursor.execute('''
@@ -182,7 +154,7 @@ def init_database():
                 "status": "ongoing"
             }
         ]
-        
+
         for hackathon in sample_hackathons:
             cursor.execute('''
                 INSERT INTO Hackathons (name, description, organizer, start_date, end_date, 
@@ -248,11 +220,11 @@ def require_expert_in_hackathon(request: Request, hackathon_id: int):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Требуется авторизация"
         )
-    
+
     # Администраторы имеют все права
     if user["role"] == "admin":
         return user
-    
+
     # Проверяем, является ли пользователь экспертом в этом хакатоне
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -262,7 +234,7 @@ def require_expert_in_hackathon(request: Request, hackathon_id: int):
     ''', (user["id"], hackathon_id))
     participation = cursor.fetchone()
     conn.close()
-    
+
     if not participation:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -346,7 +318,7 @@ def create_participation(user_id: int, hackathon_id: int, role: str, team_id: in
     """Создание участия пользователя в хакатоне"""
     conn = get_db_connection()
     cursor = conn.cursor()
-    
+
     # Проверяем, не существует ли уже участие
     cursor.execute('''
         SELECT * FROM Participations WHERE user_id = ? AND hackathon_id = ?
@@ -354,13 +326,13 @@ def create_participation(user_id: int, hackathon_id: int, role: str, team_id: in
     if cursor.fetchone():
         conn.close()
         raise ValueError("Пользователь уже участвует в этом хакатоне")
-    
+
     now = datetime.now().isoformat()
     cursor.execute('''
         INSERT INTO Participations (user_id, hackathon_id, role, team_id, reputation, created_at, updated_at)
         VALUES (?, ?, ?, ?, 0, ?, ?)
     ''', (user_id, hackathon_id, role, team_id, now, now))
-    
+
     participation_id = cursor.lastrowid
     conn.commit()
     conn.close()
@@ -370,7 +342,7 @@ def delete_participation(user_id: int, hackathon_id: int):
     """Удаление участия пользователя в хакатоне"""
     conn = get_db_connection()
     cursor = conn.cursor()
-    
+
     # Проверяем, является ли пользователь капитаном команды
     cursor.execute('''
         SELECT p.team_id, t.captain_id FROM Participations p
@@ -378,15 +350,15 @@ def delete_participation(user_id: int, hackathon_id: int):
         WHERE p.user_id = ? AND p.hackathon_id = ?
     ''', (user_id, hackathon_id))
     result = cursor.fetchone()
-    
+
     if result and result[0] and result[1] == user_id:
         # Если пользователь - капитан, удаляем команду (каскадное удаление)
         cursor.execute('DELETE FROM Teams WHERE id = ?', (result[0],))
-    
+
     cursor.execute('''
         DELETE FROM Participations WHERE user_id = ? AND hackathon_id = ?
     ''', (user_id, hackathon_id))
-    
+
     conn.commit()
     conn.close()
 
@@ -395,7 +367,7 @@ def create_team(hackathon_id: int, name: str, captain_id: int, description: str 
     """Создание команды"""
     conn = get_db_connection()
     cursor = conn.cursor()
-    
+
     # Проверяем уникальность имени команды в рамках хакатона
     cursor.execute('''
         SELECT * FROM Teams WHERE hackathon_id = ? AND name = ?
@@ -403,13 +375,13 @@ def create_team(hackathon_id: int, name: str, captain_id: int, description: str 
     if cursor.fetchone():
         conn.close()
         raise ValueError("Команда с таким именем уже существует в этом хакатоне")
-    
+
     now = datetime.now().isoformat()
     cursor.execute('''
         INSERT INTO Teams (hackathon_id, name, description, captain_id, created_at)
         VALUES (?, ?, ?, ?, ?)
     ''', (hackathon_id, name, description, captain_id, now))
-    
+
     team_id = cursor.lastrowid
     conn.commit()
     conn.close()
@@ -483,7 +455,7 @@ def add_member_to_team(user_id: int, hackathon_id: int, team_id: int):
     """Добавление участника в команду"""
     conn = get_db_connection()
     cursor = conn.cursor()
-    
+
     # Проверяем участие
     cursor.execute('''
         SELECT * FROM Participations WHERE user_id = ? AND hackathon_id = ?
@@ -492,7 +464,7 @@ def add_member_to_team(user_id: int, hackathon_id: int, team_id: int):
     if not participation:
         conn.close()
         raise ValueError("Пользователь не участвует в этом хакатоне")
-    
+
     # Проверяем размер команды
     cursor.execute('''
         SELECT h.max_team_size, COUNT(p.id) as current_size
@@ -502,13 +474,13 @@ def add_member_to_team(user_id: int, hackathon_id: int, team_id: int):
         GROUP BY h.id
     ''', (team_id, hackathon_id))
     result = cursor.fetchone()
-    
+
     if result and result[0]:
         current_size = result[1] or 0
         if current_size >= result[0]:
             conn.close()
             raise ValueError("Команда достигла максимального размера")
-    
+
     # Обновляем участие
     now = datetime.now().isoformat()
     cursor.execute('''
@@ -516,7 +488,7 @@ def add_member_to_team(user_id: int, hackathon_id: int, team_id: int):
         SET team_id = ?, updated_at = ?
         WHERE user_id = ? AND hackathon_id = ?
     ''', (team_id, now, user_id, hackathon_id))
-    
+
     conn.commit()
     conn.close()
 
@@ -537,7 +509,7 @@ def update_team_name(team_id: int, new_name: str, hackathon_id: int):
     """Обновление названия команды"""
     conn = get_db_connection()
     cursor = conn.cursor()
-    
+
     # Проверяем уникальность
     cursor.execute('''
         SELECT * FROM Teams WHERE hackathon_id = ? AND name = ? AND id != ?
@@ -545,11 +517,11 @@ def update_team_name(team_id: int, new_name: str, hackathon_id: int):
     if cursor.fetchone():
         conn.close()
         raise ValueError("Команда с таким именем уже существует")
-    
+
     cursor.execute('''
         UPDATE Teams SET name = ? WHERE id = ?
     ''', (new_name, team_id))
-    
+
     conn.commit()
     conn.close()
 
@@ -593,16 +565,16 @@ def update_reputation(participation_id: int, new_reputation: int, changed_by: in
     """Обновление репутации с сохранением истории"""
     conn = get_db_connection()
     cursor = conn.cursor()
-    
+
     # Получаем текущую репутацию
     cursor.execute("SELECT reputation FROM Participations WHERE id = ?", (participation_id,))
     result = cursor.fetchone()
     if not result:
         conn.close()
         raise ValueError("Участие не найдено")
-    
+
     old_reputation = result[0]
-    
+
     # Обновляем репутацию
     now = datetime.now().isoformat()
     cursor.execute('''
@@ -610,13 +582,13 @@ def update_reputation(participation_id: int, new_reputation: int, changed_by: in
         SET reputation = ?, updated_at = ?
         WHERE id = ?
     ''', (new_reputation, now, participation_id))
-    
+
     # Сохраняем в историю
     cursor.execute('''
         INSERT INTO ReputationHistory (participation_id, old_reputation, new_reputation, changed_by, reason, created_at)
         VALUES (?, ?, ?, ?, ?, ?)
     ''', (participation_id, old_reputation, new_reputation, changed_by, reason, now))
-    
+
     conn.commit()
     conn.close()
 

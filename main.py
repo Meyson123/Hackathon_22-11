@@ -34,6 +34,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # Шаблоны
 templates = Jinja2Templates(directory="templates")
 
+
 # Модели
 class UserLogin(BaseModel):
     email: EmailStr
@@ -95,34 +96,14 @@ class TeamUpdate(BaseModel):
 # Инициализация БД
 init_database()
 
-# ТВОЯ база данных мероприятий для обратной совместимости
-HACKATHONS_DB = {
-    1: {
-        "id": 1,
-        "name": "Tech Innovation Challenge 2024",
-        "description": "Создайте инновационные решения для будущего технологий",
-        "status": "active",
-        "start_date": "2024-01-15",
-        "end_date": "2024-01-17"
-    },
-    2: {
-        "id": 2,
-        "name": "AI Solutions Hackathon",
-        "description": "Разработка решений в области искусственного интеллекта",
-        "status": "upcoming",
-        "start_date": "2024-02-10",
-        "end_date": "2024-02-12"
-    }
-}
-
 
 # Роуты страниц
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
     user = get_current_user(request)
 
-    # ТВОЯ логика с активными хакатонами
-    active_hackathons = [h for h in HACKATHONS_DB.values() if h.get("status") == "active"]
+    # Получаем активные хакатоны из базы данных
+    active_hackathons = get_all_hackathons("ongoing")
 
     return templates.TemplateResponse("index.html", {
         "request": request,
@@ -130,10 +111,11 @@ async def index(request: Request):
         "active_hackathons": active_hackathons
     })
 
+
 @app.get("/index.html", response_class=HTMLResponse)
 async def index(request: Request):
     user = get_current_user(request)
-    active_hackathons = [h for h in HACKATHONS_DB.values() if h.get("status") == "active"]
+    active_hackathons = get_all_hackathons("ongoing")
     return templates.TemplateResponse("index.html", {
         "request": request,
         "user": user,
@@ -144,32 +126,32 @@ async def index(request: Request):
 async def login_page(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
+
 @app.get("/registration.html", response_class=HTMLResponse)
 async def registration_page(request: Request):
     return templates.TemplateResponse("registration.html", {"request": request})
+
 
 @app.get("/hackathons.html", response_class=HTMLResponse)
 async def hackathons_page(request: Request):
     user = get_current_user(request)
 
-    # ТВОЯ логика с хакатонами + логика друга
-    all_hackathons = list(HACKATHONS_DB.values())  # Твои хакатоны
-    db_hackathons = get_all_hackathons()  # Хакатоны друга из БД
-
     return templates.TemplateResponse("hackathons.html", {
         "request": request,
-        "user": user,
-        "hackathons": all_hackathons + db_hackathons  # Объединяем
+        "user": user
     })
+
 
 @app.get("/about.html", response_class=HTMLResponse)
 async def about_page(request: Request):
     user = get_current_user(request)
     return templates.TemplateResponse("about.html", {"request": request, "user": user})
 
+
 @app.get("/admin.html", response_class=HTMLResponse)
 async def admin_page(request: Request, user=Depends(require_admin)):
     return templates.TemplateResponse("admin.html", {"request": request, "user": user})
+
 
 @app.get("/profile.html", response_class=HTMLResponse)
 async def profile_page(request: Request):
@@ -177,20 +159,21 @@ async def profile_page(request: Request):
     if not user:
         return RedirectResponse(url="/login.html", status_code=302)
 
-    # ТВОЯ логика с хакатонами пользователя
+    # Получаем хакатоны пользователя из базы данных
+    user_participations = get_user_participations(user["id"])
     user_hackathons = []
-    if user.get("hackathons"):
-        try:
-            hackathon_ids = [int(x.strip()) for x in user["hackathons"].split(",") if x.strip()]
-            user_hackathons = [HACKATHONS_DB.get(hid) for hid in hackathon_ids if HACKATHONS_DB.get(hid)]
-        except:
-            pass
+
+    for participation in user_participations:
+        hackathon = get_hackathon_by_id(participation["hackathon_id"])
+        if hackathon:
+            user_hackathons.append(hackathon)
 
     return templates.TemplateResponse("profile.html", {
         "request": request,
         "user": user,
         "user_hackathons": user_hackathons
     })
+
 
 @app.get("/expert.html", response_class=HTMLResponse)
 async def expert_page(request: Request):
@@ -199,16 +182,14 @@ async def expert_page(request: Request):
         return RedirectResponse(url="/login.html", status_code=302)
     return templates.TemplateResponse("expert.html", {"request": request, "user": user})
 
+
 # ТВОИ НОВЫЕ РОУТЫ ДЛЯ ХАКАТОНОВ (добавляем к роутам друга)
 @app.get("/hackathon/{hackathon_id}")
 async def hackathon_main_page(hackathon_id: int, request: Request):
     """Главная страница конкретного хакатона"""
     hackathon = get_hackathon_by_id(hackathon_id)
     if not hackathon:
-        # Если нет в БД, проверяем в локальной базе
-        hackathon = HACKATHONS_DB.get(hackathon_id)
-        if not hackathon:
-            raise HTTPException(status_code=404, detail="Хакатон не найден")
+        raise HTTPException(status_code=404, detail="Хакатон не найден")
 
     user = get_current_user(request)
 
@@ -217,6 +198,7 @@ async def hackathon_main_page(hackathon_id: int, request: Request):
         "hackathon": hackathon,
         "user": user
     })
+
 
 @app.get("/hackathon/{hackathon_id}/role-check")
 async def role_checkup(hackathon_id: int, request: Request):
@@ -227,7 +209,7 @@ async def role_checkup(hackathon_id: int, request: Request):
         return RedirectResponse(url="/login.html")
 
     # Проверяем существование хакатона
-    hackathon = get_hackathon_by_id(hackathon_id) or HACKATHONS_DB.get(hackathon_id)
+    hackathon = get_hackathon_by_id(hackathon_id)
     if not hackathon:
         raise HTTPException(status_code=404, detail="Хакатон не найден")
 
@@ -241,7 +223,7 @@ async def role_checkup(hackathon_id: int, request: Request):
         return RedirectResponse(url=f"/hackathon/{hackathon_id}/case-holder")
     elif role == "admin":
         return RedirectResponse(url=f"/hackathon/{hackathon_id}/admin")
-    elif role == "expert":  # Добавляем эксперта из схемы друга
+    elif role == "expert":
         return RedirectResponse(url=f"/hackathon/{hackathon_id}/expert")
 
 # ТВОИ СТРАНИЦЫ ДЛЯ РАЗНЫХ РОЛЕЙ
@@ -252,7 +234,7 @@ async def user_hackathon_page(hackathon_id: int, request: Request):
     if not user:
         return RedirectResponse(url="/login.html")
 
-    hackathon = get_hackathon_by_id(hackathon_id) or HACKATHONS_DB.get(hackathon_id)
+    hackathon = get_hackathon_by_id(hackathon_id)
     if not hackathon:
         raise HTTPException(status_code=404, detail="Хакатон не найден")
 
@@ -270,7 +252,7 @@ async def captain_hackathon_page(hackathon_id: int, request: Request):
     if not user:
         return RedirectResponse(url="/login.html")
 
-    hackathon = get_hackathon_by_id(hackathon_id) or HACKATHONS_DB.get(hackathon_id)
+    hackathon = get_hackathon_by_id(hackathon_id)
     if not hackathon:
         raise HTTPException(status_code=404, detail="Хакатон не найден")
 
@@ -288,7 +270,7 @@ async def case_holder_hackathon_page(hackathon_id: int, request: Request):
     if not user:
         return RedirectResponse(url="/login.html")
 
-    hackathon = get_hackathon_by_id(hackathon_id) or HACKATHONS_DB.get(hackathon_id)
+    hackathon = get_hackathon_by_id(hackathon_id)
     if not hackathon:
         raise HTTPException(status_code=404, detail="Хакатон не найден")
 
@@ -306,7 +288,7 @@ async def admin_hackathon_page(hackathon_id: int, request: Request):
     if not user:
         return RedirectResponse(url="/login.html")
 
-    hackathon = get_hackathon_by_id(hackathon_id) or HACKATHONS_DB.get(hackathon_id)
+    hackathon = get_hackathon_by_id(hackathon_id)
     if not hackathon:
         raise HTTPException(status_code=404, detail="Хакатон не найден")
 
@@ -317,47 +299,14 @@ async def admin_hackathon_page(hackathon_id: int, request: Request):
         "user_role": user["role"]
     })
 
-# ТВОИ API для работы с хакатонами (обратная совместимость)
-@app.get("/api/hackathons")
-async def get_hackathons(request: Request):
-    """Получить список всех хакатонов (объединенные)"""
-    db_hackathons = get_all_hackathons()
-    return list(HACKATHONS_DB.values()) + db_hackathons
 
 @app.get("/api/hackathons/{hackathon_id}")
 async def get_hackathon(hackathon_id: int, request: Request):
     """Получить информацию о конкретном хакатоне"""
-    hackathon = get_hackathon_by_id(hackathon_id) or HACKATHONS_DB.get(hackathon_id)
+    hackathon = get_hackathon_by_id(hackathon_id)
     if not hackathon:
         raise HTTPException(status_code=404, detail="Хакатон не найден")
     return hackathon
-
-@app.post("/api/hackathons/{hackathon_id}/register")
-async def register_for_hackathon(hackathon_id: int, request: Request):
-    """Регистрация пользователя на хакатон (твоя упрощенная версия)"""
-    user = get_current_user(request)
-    if not user:
-        raise HTTPException(status_code=401, detail="Не авторизован")
-
-    hackathon = get_hackathon_by_id(hackathon_id) or HACKATHONS_DB.get(hackathon_id)
-    if not hackathon:
-        raise HTTPException(status_code=404, detail="Хакатон не найден")
-
-    # Обновляем список хакатонов пользователя
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    current_hackathons = user.get("hackathons", "").split(",") if user.get("hackathons") else []
-    if str(hackathon_id) not in current_hackathons:
-        current_hackathons.append(str(hackathon_id))
-        new_hackathons = ",".join(current_hackathons)
-
-        cursor.execute("UPDATE Users SET hackathons = ? WHERE id = ?", (new_hackathons, user["id"]))
-        conn.commit()
-
-    conn.close()
-
-    return {"message": f"Успешная регистрация на хакатон '{hackathon['name']}'"}
 
 # API роуты друга (остаются без изменений)
 @app.post("/api/login")
@@ -376,6 +325,7 @@ async def login(request: Request, credentials: UserLogin):
 
     user_response = {k: v for k, v in user.items() if k != "password"}
     return {"message": "Успешный вход", "user": user_response}
+
 
 @app.post("/api/register")
 async def register(request: Request, user_data: UserCreate):
@@ -443,10 +393,12 @@ async def register(request: Request, user_data: UserCreate):
     user_response = {k: v for k, v in created_user.items() if k != "password"}
     return {"message": "Регистрация успешна", "user": user_response}
 
+
 @app.post("/api/logout")
 async def logout(request: Request):
     request.session.clear()
     return {"message": "Успешный выход"}
+
 
 @app.get("/api/user")
 async def get_user(request: Request):
@@ -455,6 +407,7 @@ async def get_user(request: Request):
         raise HTTPException(status_code=401, detail="Не авторизован")
     user_response = {k: v for k, v in user.items() if k != "password"}
     return user_response
+
 
 @app.put("/api/user")
 async def update_current_user(request: Request, user_data: dict):
@@ -501,6 +454,7 @@ async def update_current_user(request: Request, user_data: dict):
     user_response = {k: v for k, v in updated_user.items() if k != "password"}
     return {"message": "Профиль обновлен", "user": user_response}
 
+
 @app.get("/api/users")
 async def get_users(request: Request, admin=Depends(require_admin)):
     conn = get_db_connection()
@@ -514,6 +468,7 @@ async def get_users(request: Request, admin=Depends(require_admin)):
         user.pop("password", None)
 
     return users
+
 
 @app.get("/api/statistics")
 async def get_statistics(request: Request, admin=Depends(require_admin)):
@@ -557,6 +512,7 @@ async def get_statistics(request: Request, admin=Depends(require_admin)):
     }
     return stats
 
+
 @app.delete("/api/users/{user_id}")
 async def delete_user(user_id: int, request: Request, admin=Depends(require_admin)):
     # Проверяем, что пользователь не удаляет первого администратора
@@ -578,6 +534,7 @@ async def delete_user(user_id: int, request: Request, admin=Depends(require_admi
     conn.close()
 
     return {"message": "Пользователь удалён"}
+
 
 @app.put("/api/users/{user_id}")
 async def update_user(user_id: int, user_data: dict, request: Request, admin=Depends(require_admin)):
@@ -615,12 +572,14 @@ async def update_user(user_id: int, user_data: dict, request: Request, admin=Dep
 
     return {"message": "Пользователь обновлен"}
 
+
 # ========== Hackathons API (код друга) ==========
 @app.get("/api/hackathons")
 async def get_hackathons_api(request: Request, status_filter: Optional[str] = None):
     """Получение списка хакатонов (версия друга)"""
     hackathons = get_all_hackathons(status_filter)
     return hackathons
+
 
 @app.get("/api/hackathons/{hackathon_id}")
 async def get_hackathon_api(hackathon_id: int, request: Request):
@@ -629,6 +588,7 @@ async def get_hackathon_api(hackathon_id: int, request: Request):
     if not hackathon:
         raise HTTPException(status_code=404, detail="Хакатон не найден")
     return hackathon
+
 
 @app.post("/api/hackathons")
 async def create_hackathon(hackathon_data: HackathonCreate, request: Request, admin=Depends(require_admin)):
@@ -653,6 +613,7 @@ async def create_hackathon(hackathon_data: HackathonCreate, request: Request, ad
 
     return {"message": "Хакатон создан", "hackathon_id": hackathon_id}
 
+
 # ========== Participations API (код друга) ==========
 @app.get("/api/participations")
 async def get_my_participations(request: Request):
@@ -664,6 +625,7 @@ async def get_my_participations(request: Request):
     participations = get_user_participations(user["id"])
     return participations
 
+
 @app.get("/api/participations/{user_id}/{hackathon_id}")
 async def get_participation_info(user_id: int, hackathon_id: int, request: Request):
     """Получение информации об участии"""
@@ -671,6 +633,7 @@ async def get_participation_info(user_id: int, hackathon_id: int, request: Reque
     if not participation:
         raise HTTPException(status_code=404, detail="Участие не найдено")
     return participation
+
 
 @app.post("/api/participations")
 async def create_participation_endpoint(participation_data: ParticipationCreate, request: Request):
@@ -738,6 +701,7 @@ async def create_participation_endpoint(participation_data: ParticipationCreate,
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+
 @app.delete("/api/participations/{hackathon_id}")
 async def cancel_participation_endpoint(hackathon_id: int, request: Request):
     """Отмена участия в хакатоне"""
@@ -756,9 +720,10 @@ async def cancel_participation_endpoint(hackathon_id: int, request: Request):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+
 @app.put("/api/participations/{user_id}/{hackathon_id}/role")
 async def update_participation_role_endpoint(
-    user_id: int, hackathon_id: int, role_data: dict, request: Request, admin=Depends(require_admin)
+        user_id: int, hackathon_id: int, role_data: dict, request: Request, admin=Depends(require_admin)
 ):
     """Обновление роли участия (только для администраторов)"""
     new_role = role_data.get("role")
@@ -771,6 +736,7 @@ async def update_participation_role_endpoint(
 
     update_participation_role(user_id, hackathon_id, new_role)
     return {"message": "Роль обновлена"}
+
 
 # ========== Reputation API (код друга) ==========
 @app.get("/api/hackathons/{hackathon_id}/participants")
@@ -789,6 +755,7 @@ async def get_hackathon_participants_endpoint(hackathon_id: int, request: Reques
 
     participants = get_hackathon_participants(hackathon_id)
     return participants
+
 
 @app.put("/api/reputation")
 async def update_reputation_endpoint(reputation_data: ReputationUpdate, request: Request):
@@ -828,6 +795,7 @@ async def update_reputation_endpoint(reputation_data: ReputationUpdate, request:
 
     return {"message": "Репутация обновлена"}
 
+
 @app.get("/api/reputation/history/{participation_id}")
 async def get_reputation_history_endpoint(participation_id: int, request: Request):
     """Получение истории изменений репутации"""
@@ -860,6 +828,7 @@ async def get_reputation_history_endpoint(participation_id: int, request: Reques
     history = get_reputation_history(participation_id)
     return history
 
+
 # ========== Teams API (код друга) ==========
 @app.get("/api/teams/{team_id}")
 async def get_team_info(team_id: int, request: Request):
@@ -883,6 +852,7 @@ async def get_team_info(team_id: int, request: Request):
 
     return team_data
 
+
 @app.get("/api/hackathons/{hackathon_id}/teams")
 async def get_available_teams_endpoint(hackathon_id: int, request: Request):
     """Получение доступных команд в хакатоне"""
@@ -892,6 +862,7 @@ async def get_available_teams_endpoint(hackathon_id: int, request: Request):
 
     teams = get_available_teams(hackathon_id)
     return teams
+
 
 @app.post("/api/teams")
 async def create_team_endpoint(team_data: TeamCreate, request: Request):
@@ -923,6 +894,7 @@ async def create_team_endpoint(team_data: TeamCreate, request: Request):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+
 @app.put("/api/teams/{team_id}")
 async def update_team_endpoint(team_id: int, team_data: TeamUpdate, request: Request):
     """Обновление команды (только капитан)"""
@@ -943,6 +915,7 @@ async def update_team_endpoint(team_id: int, team_data: TeamUpdate, request: Req
         return {"message": "Команда обновлена"}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
 
 @app.post("/api/teams/{team_id}/members")
 async def add_team_member_endpoint(team_id: int, request: Request):
@@ -970,6 +943,7 @@ async def add_team_member_endpoint(team_id: int, request: Request):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+
 @app.delete("/api/teams/{team_id}/members")
 async def remove_team_member_endpoint(team_id: int, user_id: Optional[int] = None, request: Request = None):
     """Удаление участника из команды"""
@@ -995,6 +969,7 @@ async def remove_team_member_endpoint(team_id: int, user_id: Optional[int] = Non
         return {"message": "Участник удален из команды"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
 
 @app.get("/team.html", response_class=HTMLResponse)
 async def team_page(request: Request):
@@ -1045,6 +1020,8 @@ async def team_page(request: Request):
         "is_captain": team["captain_id"] == user["id"]
     })
 
+
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="127.0.0.1", port=8000)
