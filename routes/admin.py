@@ -142,7 +142,52 @@ async def delete_user(user_id: int, request: Request, admin=Depends(require_admi
     conn.close()
 
     return {"message": "Пользователь удалён"}
+@router.get("/api/statistics/age-distribution")
+async def get_age_distribution(request: Request, admin=Depends(require_admin)):
+    """Получение распределения возрастов пользователей"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
 
+    # Получаем распределение возрастов
+    cursor.execute('''
+        SELECT 
+            CASE 
+                WHEN age < 18 THEN 'До 18'
+                WHEN age BETWEEN 18 AND 25 THEN '18-25'
+                WHEN age BETWEEN 26 AND 35 THEN '26-35' 
+                WHEN age BETWEEN 36 AND 45 THEN '36-45'
+                WHEN age > 45 THEN '45+'
+                ELSE 'Не указан'
+            END as age_group,
+            COUNT(*) as count
+        FROM Users 
+        GROUP BY age_group
+        ORDER BY 
+            CASE age_group
+                WHEN 'До 18' THEN 1
+                WHEN '18-25' THEN 2
+                WHEN '26-35' THEN 3
+                WHEN '36-45' THEN 4
+                WHEN '45+' THEN 5
+                ELSE 6
+            END
+    ''')
+
+    age_data = cursor.fetchall()
+    conn.close()
+
+    # Форматируем данные для графика
+    age_groups = []
+    counts = []
+
+    for row in age_data:
+        age_groups.append(row[0])
+        counts.append(row[1])
+
+    return {
+        "age_groups": age_groups,
+        "counts": counts
+    }
 @router.put("/api/users/{user_id}")
 async def update_user(user_id: int, user_data: dict, request: Request, admin=Depends(require_admin)):
     conn = get_db_connection()
@@ -176,3 +221,37 @@ async def update_user(user_id: int, user_data: dict, request: Request, admin=Dep
     conn.close()
 
     return {"message": "Пользователь обновлен"}
+
+# +1 строка - добавить после существующих endpoint'ов
+@router.get("/api/statistics/registration-timeline")
+async def get_registration_timeline(request: Request, admin=Depends(require_admin)):
+    """Получение данных о регистрациях пользователей по датам"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Получаем количество регистраций по дням за последние 30 дней
+    cursor.execute('''
+        SELECT 
+            DATE(created_at) as registration_date,
+            COUNT(*) as user_count
+        FROM Users 
+        WHERE created_at >= date('now', '-30 days')
+        GROUP BY DATE(created_at)
+        ORDER BY registration_date
+    ''')
+
+    timeline_data = cursor.fetchall()
+    conn.close()
+
+    # Форматируем данные для графика
+    dates = []
+    counts = []
+
+    for row in timeline_data:
+        dates.append(row[0])
+        counts.append(row[1])
+
+    return {
+        "dates": dates,
+        "counts": counts
+    }

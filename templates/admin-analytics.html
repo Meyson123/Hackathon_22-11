@@ -6,6 +6,8 @@
     <title>Аналитика - Админ</title>
     <link rel="stylesheet" href="/static/styles.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- ДОБАВИТЬ ECHARTS -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     <style>
         .admin-container {
             max-width: 1400px;
@@ -186,11 +188,17 @@
             </div>
 
             <!-- Charts -->
+            <!-- Распределение по возрастам -->
             <div class="chart-container">
-                <h3>Регистрации пользователей по месяцам</h3>
-                <canvas id="usersChart"></canvas>
+                <h3>Распределение пользователей по возрастам</h3>
+                <div id="ageChart" style="height: 400px;"></div>
             </div>
-
+            <!-- +1 строка - добавить после блока с ageChart -->
+            <!-- Диаграмма регистраций по датам -->
+            <div class="chart-container">
+                <h3>Регистрации пользователей по датам</h3>
+                <div id="registrationsChart" style="height: 400px;"></div>
+            </div>
             <div class="chart-container">
                 <h3>Распределение участников по ролям</h3>
                 <canvas id="rolesChart"></canvas>
@@ -221,6 +229,7 @@
     <script>
         let usersChart = null;
         let rolesChart = null;
+        let ageChart = null;
 
         // Check admin auth
         async function checkAdminAuth() {
@@ -239,6 +248,155 @@
                 window.location.href = '/admin-login.html';
             }
         }
+
+        // Загрузка распределения возрастов
+        async function loadAgeDistribution() {
+            try {
+                const response = await fetch('/api/statistics/age-distribution');
+                if (!response.ok) {
+                    throw new Error('Ошибка загрузки данных');
+                }
+                const data = await response.json();
+
+                // Инициализируем диаграмму
+                const chartElement = document.getElementById('ageChart');
+                if (ageChart) {
+                    ageChart.dispose();
+                }
+                ageChart = echarts.init(chartElement);
+
+                const option = {
+                    title: {
+                        text: 'Распределение по возрастам',
+                        left: 'center'
+                    },
+                    tooltip: {
+                        trigger: 'item',
+                        formatter: '{a} <br/>{b}: {c} ({d}%)'
+                    },
+                    legend: {
+                        orient: 'vertical',
+                        left: 'left'
+                    },
+                    series: [
+                        {
+                            name: 'Пользователи',
+                            type: 'pie',
+                            radius: '50%',
+                            data: data.age_groups.map((group, index) => ({
+                                value: data.counts[index],
+                                name: group
+                            })),
+                            emphasis: {
+                                itemStyle: {
+                                    shadowBlur: 10,
+                                    shadowOffsetX: 0,
+                                    shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                }
+                            }
+                        }
+                    ]
+                };
+
+                ageChart.setOption(option);
+
+                // Адаптация под размер окна
+                window.addEventListener('resize', function() {
+                    ageChart.resize();
+                });
+
+            } catch (error) {
+                console.error('Ошибка загрузки распределения возрастов:', error);
+                document.getElementById('ageChart').innerHTML = '<p style="text-align: center; color: #666; padding: 50px;">Ошибка загрузки данных</p>';
+            }
+        }
+        async function loadRegistrationTimeline() {
+            try {
+                const response = await fetch('/api/statistics/registration-timeline');
+                if (!response.ok) {
+                    throw new Error('Ошибка загрузки данных');
+                }
+                const data = await response.json();
+
+                // Инициализируем диаграмму
+                const chartElement = document.getElementById('registrationsChart');
+                const registrationsChart = echarts.init(chartElement);
+
+                const option = {
+                    title: {
+                        text: 'Регистрации за последние 30 дней',
+                        left: 'center'
+                    },
+                    tooltip: {
+                        trigger: 'axis',
+                        formatter: function (params) {
+                            const date = params[0].axisValue;
+                            const count = params[0].data;
+                            return `Дата: ${date}<br/>Зарегистрировано: ${count} пользователей`;
+                        }
+                    },
+                    xAxis: {
+                        type: 'category',
+                        data: data.dates,
+                        axisLabel: {
+                            rotate: 45
+                        }
+                    },
+                    yAxis: {
+                        type: 'value',
+                        name: 'Количество пользователей'
+                    },
+                    series: [
+                        {
+                            name: 'Регистрации',
+                            type: 'line',
+                            data: data.counts,
+                            smooth: true,
+                            lineStyle: {
+                                color: '#667eea',
+                                width: 3
+                            },
+                            itemStyle: {
+                                color: '#667eea'
+                            },
+                            areaStyle: {
+                                color: {
+                                    type: 'linear',
+                                    x: 0,
+                                    y: 0,
+                                    x2: 0,
+                                    y2: 1,
+                                    colorStops: [{
+                                        offset: 0, color: 'rgba(102, 126, 234, 0.3)'
+                                    }, {
+                                        offset: 1, color: 'rgba(102, 126, 234, 0.1)'
+                                    }]
+                                }
+                            }
+                        }
+                    ],
+                    grid: {
+                        left: '3%',
+                        right: '4%',
+                        bottom: '15%',
+                        top: '15%',
+                        containLabel: true
+                    }
+                };
+
+                registrationsChart.setOption(option);
+
+                // Адаптация под размер окна
+                window.addEventListener('resize', function() {
+                    registrationsChart.resize();
+                });
+
+            } catch (error) {
+                console.error('Ошибка загрузки диаграммы регистраций:', error);
+                document.getElementById('registrationsChart').innerHTML = '<p style="text-align: center; color: #666; padding: 50px;">Ошибка загрузки данных</p>';
+            }
+        }
+
 
         async function loadAnalytics() {
             try {
@@ -364,56 +522,19 @@
                     const usersResponse = await fetch('/api/users');
                     if (usersResponse.ok) {
                         const users = await usersResponse.json();
-                        updateUsersChart(users);
                         updateRolesChart(users);
                     }
                 } catch (error) {
                     console.error('Error loading users for charts:', error);
                 }
+
+                // Загружаем распределение возрастов
+                await loadAgeDistribution();
+
+                await loadRegistrationTimeline();
             } catch (error) {
                 console.error('Error loading analytics:', error);
             }
-        }
-
-        function updateUsersChart(users) {
-            // Group users by month
-            const monthlyData = {};
-            users.forEach(user => {
-                if (user.created_at) {
-                    const date = new Date(user.created_at);
-                    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-                    monthlyData[monthKey] = (monthlyData[monthKey] || 0) + 1;
-                }
-            });
-
-            const labels = Object.keys(monthlyData).sort();
-            const data = labels.map(key => monthlyData[key]);
-
-            const ctx = document.getElementById('usersChart').getContext('2d');
-            if (usersChart) {
-                usersChart.destroy();
-            }
-            usersChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Регистраций',
-                        data: data,
-                        borderColor: '#667eea',
-                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
         }
 
         function updateRolesChart(users) {
@@ -427,7 +548,9 @@
             const data = labels.map(key => roleCounts[key]);
             const colors = ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#00f2fe'];
 
-            const ctx = document.getElementById('rolesChart').getContext('2d');
+            const ctx = document.getElementById('rolesChart');
+            if (!ctx) return;
+
             if (rolesChart) {
                 rolesChart.destroy();
             }
@@ -466,4 +589,3 @@
     </script>
 </body>
 </html>
-
