@@ -1139,3 +1139,23 @@ def get_expert_audit_log(expert_id: int, hackathon_id: int = None):
     logs = [dict(row) for row in cursor.fetchall()]
     conn.close()
     return logs
+
+def migrate_hackathons_table():
+    """Добавление новых колонок в таблицу Hackathons если их нет"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("PRAGMA table_info(Hackathons)")
+        columns = [column[1] for column in cursor.fetchall()]
+
+        if 'min_participants' not in columns:
+            cursor.execute("ALTER TABLE Hackathons ADD COLUMN min_participants INTEGER DEFAULT 0")
+            conn.commit()
+
+        if 'published' not in columns:
+            cursor.execute("ALTER TABLE Hackathons ADD COLUMN published INTEGER DEFAULT 0")
+            conn.commit()
+    except Exception as e:
+        print(f"Migration warning: {e}")
+    finally:
+        conn.close()
