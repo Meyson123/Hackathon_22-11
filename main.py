@@ -93,11 +93,13 @@ class TeamCreate(BaseModel):
     hackathon_id: int
     name: str
 
-
 class TeamUpdate(BaseModel):
     name: str
 
-
+class HackathonResults(BaseModel):
+    GP = {1:25,2:18,3:15,4:12,5:10,6:8,7:6,8:4,9:2,10:1}
+    hackathon_id: int
+    results: dict
 # Инициализация БД
 init_database()
 
@@ -524,17 +526,16 @@ async def admin_login(request: Request, credentials: dict):
             cursor.execute('''
                 INSERT INTO Users (username, email, password, role, created_at)
                 VALUES (?, ?, ?, ?, ?)
-            ''', ("admin", "admin@hackathon.local", "admin123", "admin", datetime.now().isoformat()))
+            ''', ("admin", "admin@hackathon.local", ADM_PASS, "admin", datetime.now().isoformat()))
             conn.commit()
             user_id = cursor.lastrowid
             conn.close()
             user = get_user_by_id(user_id)
         else:
-            # Update password if needed
-            if user["password"] != "admin123":
+            if user["password"] != ADM_PASS:
                 conn = get_db_connection()
                 cursor = conn.cursor()
-                cursor.execute("UPDATE Users SET password = ? WHERE id = ?", ("admin123", user["id"]))
+                cursor.execute("UPDATE Users SET password = ? WHERE id = ?", (ADM_PASS, user["id"]))
                 conn.commit()
                 conn.close()
 
@@ -1236,7 +1237,153 @@ async def team_page(request: Request):
         "is_captain": team["captain_id"] == user["id"]
     })
 
+def calculate_hackathon_results(hackathon_id: int):
+    """Автоматический расчет результатов хакатона по GP системе"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
 
+    # Получаем хакатон
+    hackathon = get_hackathon_by_id(hackathon_id)
+    if not hackathon:
+        return
+
+    # Получаем все команды в хакатоне с количеством участников и их репутацией
+    cursor.execute('''
+        SELECT 
+            t.id as team_id,
+            t.name as team_name,
+            COUNT(p.user_id) as member_count,
+            AVG(p.reputation) as avg_reputation
+        FROM Teams t
+        LEFT JOIN Participations p ON t.id = p.team_id
+        WHERE t.hackathon_id = ?
+        GROUP BY t.id
+        HAVING member_count > 0
+        ORDER BY avg_reputation DESC, member_count DESC
+    ''', (hackathon_id,))
+
+    teams = cursor.fetchall()
+
+    # Начисляем репутацию командам по GP системе (только первые 10 мест)
+    for i, team in enumerate(teams[:10]):  # Только первые 10 мест
+        place = i + 1
+        team_id = team['team_id']
+        reputation_award = HackathonResults.GP.get(place, 0)
+
+        if reputation_award > 0:
+            # Получаем всех участников команды
+            cursor.execute('''
+                SELECT p.id as participation_id, p.user_id 
+                FROM Participations p 
+                WHERE p.team_id = ? AND p.hackathon_id = ? AND p.completed = TRUE
+            ''', (team_id, hackathon_id))
+
+            members = cursor.fetchall()
+
+            for member in members:
+                # Получаем текущую репутацию
+                cursor.execute('SELECT reputation FROM Participations WHERE id = ?', (member['participation_id'],))
+                current_reputation = cursor.fetchone()[0]
+
+                new_reputation = current_reputation + reputation_award
+
+                # Обновляем репутацию
+                update_reputation(
+                    member['participation_id'],
+                    new_reputation,
+                    1,  # Система
+                    f"Автоматическое начисление: {place} место в хакатоне '{hackathon['name']}' (GP: +{reputation_award})"
+                )
+
+    # Начисляем репутацию за участие ВСЕМ участникам, которые завершили хакатон
+    cursor.execute('''
+        SELECT p.id as participation_id, p.user_id
+        FROM Participations p
+        WHERE p.hackathon_id = ? AND p.completed = TRUE
+    ''', (hackathon_id,))
+
+    all_participants = cursor.fetchall()
+
+    participation_bonus = 5  # Базовые очки за участие
+
+    for participant in all_participants:
+        cursor.execute('SELECT reputation FROM Participations WHERE id = ?', (participant['participation_id'],))
+        current_reputation = cursor.fetchone()[0]
+
+        new_reputation = current_reputation + participation_bonus
+
+        update_reputation(
+            participant['participation_id'],
+            new_reputation,
+            1,  # Система
+            f"Автоматическое начисление: участие в хакатоне '{hackathon['name']}' (+{participation_bonus})"
+        )
+
+    conn.close()
+
+@app.get("/api/leaderboard")
+async def get_leaderboard(request: Request, limit: int = 50):
+    """Получение топа пользователей по репутации с учетом GP системы"""
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Суммируем репутацию из всех участий для каждого пользователя
+    cursor.execute('''
+        SELECT 
+            u.id,
+            u.username,
+            u.fio,
+            u.telegram_nickname,
+            u.city,
+            COALESCE(SUM(p.reputation), 0) as total_reputation,
+            COUNT(p.id) as hackathons_participated,
+            SUM(CASE WHEN p.completed = TRUE THEN 1 ELSE 0 END) as hackathons_completed
+        FROM Users u
+        LEFT JOIN Participations p ON u.id = p.user_id
+        WHERE u.role != 'admin'  # Исключаем админов из топа
+        GROUP BY u.id
+        HAVING total_reputation > 0
+        ORDER BY total_reputation DESC
+        LIMIT ?
+    ''', (limit,))
+
+    leaderboard = []
+    rank = 1
+    for row in cursor.fetchall():
+        user_data = dict(row)
+
+        # Получаем статистику по местам в хакатонах
+        cursor.execute('''
+            SELECT 
+                COUNT(*) as total_hackathons,
+                SUM(CASE WHEN p.reputation >= ? THEN 1 ELSE 0 END) as first_places,
+                SUM(CASE WHEN p.reputation >= ? AND p.reputation < ? THEN 1 ELSE 0 END) as second_places,
+                SUM(CASE WHEN p.reputation >= ? AND p.reputation < ? THEN 1 ELSE 0 END) as third_places
+            FROM Participations p
+            WHERE p.user_id = ? AND p.completed = TRUE
+        ''', (
+            HackathonResults.GP[1],
+            HackathonResults.GP[2], HackathonResults.GP[1],
+            HackathonResults.GP[3], HackathonResults.GP[2],
+            user_data["id"]
+        ))
+
+        stats = cursor.fetchone()
+
+        leaderboard.append({
+            **user_data,
+            "rank": rank,
+            "first_places": stats["first_places"] if stats else 0,
+            "second_places": stats["second_places"] if stats else 0,
+            "third_places": stats["third_places"] if stats else 0,
+            "total_hackathons": stats["total_hackathons"] if stats else 0
+        })
+        rank += 1
+
+    conn.close()
+
+    return leaderboard
 if __name__ == "__main__":
     import uvicorn
 
