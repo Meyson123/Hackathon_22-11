@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Семинары и Курсы - Хакатон Хаб</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <!-- Upper Navigation Hub -->
+    <nav class="top-nav">
+        <div class="nav-container">
+            <button class="menu-btn" id="menuBtn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="logo">
+                <h1>Хакатон Хаб</h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="/">Главная</a></li>
+                <li><a href="registration.html" id="registerLink">Регистрация</a></li>
+                <li><a href="hackathons.html">Хакатоны</a></li>
+                <li><a href="seminars.html" class="active">Семинары</a></li>
+                <li><a href="about.html">О нас</a></li>
+                <li><a href="profile.html" id="profileLink" style="display: none;">Профиль</a></li>
+                <li><a href="login.html" id="loginLink">Вход</a></li>
+                <li><a href="/" id="logoutLink" style="display: none;">Выход</a></li>
+                <li><a href="expert.html" id="expertLink" style="display: none;">Панель эксперта</a></li>
+                <li><a href="admin.html" id="adminLink" style="display: none;">Админ</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Sidebar Hub -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>Информационный Хаб</h2>
+            <button class="close-btn" id="closeBtn">&times;</button>
+        </div>
+        <div class="sidebar-content">
+            <div class="hub-section" id="participantsSection">
+                <h3>Участники</h3>
+                <div class="info-card">
+                    <p><strong>Всего участников:</strong> 1,234</p>
+                    <p><strong>Активных сейчас:</strong> 89</p>
+                    <p><strong>Зарегистрировано в этом месяце:</strong> 156</p>
+                </div>
+            </div>
+            <div class="hub-section" id="hackathonsSection">
+                <h3>Хакатоны</h3>
+                <div class="info-card">
+                    <p><strong>Предстоящие:</strong> 12</p>
+                    <p><strong>Текущие:</strong> 3</p>
+                    <p><strong>Завершённые:</strong> 45</p>
+                </div>
+            </div>
+            <div class="hub-section" id="coursesSection">
+                <h3>Интенсивные Курсы</h3>
+                <div class="info-card">
+                    <p><strong>Доступных курсов:</strong> 8</p>
+                    <p><strong>Записанных студентов:</strong> 567</p>
+                    <p><strong>Процент завершения:</strong> 78%</p>
+                </div>
+            </div>
+            <div class="hub-section" id="organizationsSection">
+                <h3>Организации</h3>
+                <div class="info-card">
+                    <p><strong>Всего организаций:</strong> 24</p>
+                    <p><strong>Активных партнёров:</strong> 18</p>
+                    <p><strong>Опубликовано хакатонов:</strong> 67</p>
+                </div>
+            </div>
+            <div class="hub-section" id="statisticsSection">
+                <h3>Статистика</h3>
+                <div class="info-card">
+                    <p><strong>Всего проектов:</strong> 890</p>
+                    <p><strong>Процент успеха:</strong> 82%</p>
+                    <p><strong>Средний размер команды:</strong> 4.2</p>
+                    <p><strong>Призовой фонд:</strong> $125,000</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="hero-section">
+            <h2>Семинары и Интенсивные Курсы</h2>
+            <p>Учитесь у экспертов и ускоряйте свою карьеру</p>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="filter-tabs">
+            <button class="filter-btn active" data-filter="webinars">Вебинары/Семинары</button>
+            <button class="filter-btn" data-filter="courses">Интенсивные Курсы</button>
+        </div>
+
+        <!-- Webinars/Seminars Section -->
+        <section class="hackathons-section" id="webinars">
+            <h2 class="section-title">Вебинары и Семинары</h2>
+            <div class="hackathons-grid" id="webinars-list">
+                <p>Загрузка...</p>
+            </div>
+        </section>
+
+        <!-- Intensive Courses Section -->
+        <section class="hackathons-section" id="courses" style="display: none;">
+            <h2 class="section-title">Интенсивные Курсы</h2>
+            <div class="hackathons-grid" id="courses-list">
+                <p>Загрузка...</p>
+            </div>
+        </section>
+    </main>
+
+    <script src="/static/script.js"></script>
+    <script>
+        let currentUser = null;
+
+        // Update navigation on load
+        if (typeof updateNavigation === 'function') {
+            updateNavigation();
+        }
+
+        // Load current user
+        async function loadUserData() {
+            try {
+                const response = await fetch('/api/user');
+                if (response.ok) {
+                    currentUser = await response.json();
+                }
+            } catch (error) {
+                console.error('Error loading user data:', error);
+            }
+        }
+
+        // Load webinars
+        async function loadWebinars() {
+            try {
+                const response = await fetch('/api/webinars?status_filter=upcoming');
+                const webinars = await response.json();
+                renderWebinars(webinars);
+            } catch (error) {
+                console.error('Error loading webinars:', error);
+                document.getElementById('webinars-list').innerHTML = '<p>Ошибка загрузки вебинаров</p>';
+            }
+        }
+
+        function renderWebinars(webinars) {
+            const container = document.getElementById('webinars-list');
+            if (webinars.length === 0) {
+                container.innerHTML = '<p>Вебинары не найдены</p>';
+                return;
+            }
+
+            container.innerHTML = webinars.map(w => {
+                const date = new Date(w.date_time);
+                const statusLabels = {
+                    'upcoming': 'Предстоящий',
+                    'ongoing': 'Идёт сейчас',
+                    'completed': 'Завершён'
+                };
+                const statusBadges = {
+                    'upcoming': 'upcoming',
+                    'ongoing': 'ongoing',
+                    'completed': 'completed'
+                };
+
+                let buttonHtml = '';
+                if (w.is_registered) {
+                    buttonHtml = `
+                        <div class="participation-info">
+                            <strong>Вы зарегистрированы</strong>
+                        </div>
+                        <button class="btn btn-secondary btn-full" onclick="cancelWebinarRegistration(${w.id})">Отменить регистрацию</button>
+                    `;
+                } else if (w.status === 'completed') {
+                    buttonHtml = '<button class="btn btn-secondary btn-full" disabled>Завершён</button>';
+                } else if (currentUser) {
+                    const isFull = w.max_participants && w.participant_count >= w.max_participants;
+                    if (isFull) {
+                        buttonHtml = '<button class="btn btn-secondary btn-full" disabled>Места заполнены</button>';
+                    } else {
+                        buttonHtml = `<button class="btn btn-primary btn-full" onclick="registerForWebinar(${w.id})">Зарегистрироваться</button>`;
+                    }
+                } else {
+                    buttonHtml = '<a href="login.html" class="btn btn-primary btn-full">Войти для регистрации</a>';
+                }
+
+                return `
+                    <div class="hackathon-card">
+                        <div class="hackathon-badge ${statusBadges[w.status] || 'upcoming'}">${statusLabels[w.status] || 'Предстоящий'}</div>
+                        <h3>${w.name}</h3>
+                        <p class="hackathon-org">Спикер: ${w.speaker}</p>
+                        ${w.description ? `<p class="hackathon-desc">${w.description}</p>` : ''}
+                        <div class="hackathon-details">
+                            <div class="detail-item">
+                                <span class="detail-icon">📅</span>
+                                <span>${date.toLocaleString('ru-RU', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                            </div>
+                            ${w.duration_hours ? `
+                            <div class="detail-item">
+                                <span class="detail-icon">⏱️</span>
+                                <span>${w.duration_hours} ${w.duration_hours === 1 ? 'час' : w.duration_hours < 5 ? 'часа' : 'часов'}</span>
+                            </div>
+                            ` : ''}
+                            <div class="detail-item">
+                                <span class="detail-icon">💻</span>
+                                <span>${w.location || 'Онлайн'}</span>
+                            </div>
+                            ${w.max_participants ? `
+                            <div class="detail-item">
+                                <span class="detail-icon">👥</span>
+                                <span>${w.participant_count || 0} / ${w.max_participants} участников</span>
+                            </div>
+                            ` : ''}
+                        </div>
+                        ${buttonHtml}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Load courses
+        async function loadCourses() {
+            try {
+                const response = await fetch('/api/courses?status_filter=upcoming');
+                const courses = await response.json();
+                renderCourses(courses);
+            } catch (error) {
+                console.error('Error loading courses:', error);
+                document.getElementById('courses-list').innerHTML = '<p>Ошибка загрузки курсов</p>';
+            }
+        }
+
+        function renderCourses(courses) {
+            const container = document.getElementById('courses-list');
+            if (courses.length === 0) {
+                container.innerHTML = '<p>Курсы не найдены</p>';
+                return;
+            }
+
+            container.innerHTML = courses.map(c => {
+                const startDate = new Date(c.start_date);
+                const endDate = new Date(c.end_date);
+                const statusLabels = {
+                    'upcoming': 'Скоро',
+                    'ongoing': 'Идёт набор',
+                    'completed': 'Завершён'
+                };
+                const statusBadges = {
+                    'upcoming': 'upcoming',
+                    'ongoing': 'ongoing',
+                    'completed': 'completed'
+                };
+
+                let buttonHtml = '';
+                if (c.is_registered) {
+                    buttonHtml = `
+                        <div class="participation-info">
+                            <strong>Вы записаны на курс</strong>
+                        </div>
+                        <button class="btn btn-secondary btn-full" onclick="cancelCourseRegistration(${c.id})">Отменить запись</button>
+                    `;
+                } else if (c.status === 'completed') {
+                    buttonHtml = '<button class="btn btn-secondary btn-full" disabled>Завершён</button>';
+                } else if (currentUser) {
+                    const isFull = c.max_students && c.participant_count >= c.max_students;
+                    if (isFull) {
+                        buttonHtml = '<button class="btn btn-secondary btn-full" disabled>Места заполнены</button>';
+                    } else {
+                        buttonHtml = `<button class="btn btn-primary btn-full" onclick="registerForCourse(${c.id})">Записаться на курс</button>`;
+                    }
+                } else {
+                    buttonHtml = '<a href="login.html" class="btn btn-primary btn-full">Войти для записи</a>';
+                }
+
+                return `
+                    <div class="hackathon-card">
+                        <div class="hackathon-badge ${statusBadges[c.status] || 'upcoming'}">${statusLabels[c.status] || 'Скоро'}</div>
+                        <h3>${c.name}</h3>
+                        <p class="hackathon-org">Преподаватель: ${c.instructor}</p>
+                        ${c.description ? `<p class="hackathon-desc">${c.description}</p>` : ''}
+                        <div class="hackathon-details">
+                            <div class="detail-item">
+                                <span class="detail-icon">📅</span>
+                                <span>Начало: ${startDate.toLocaleDateString('ru-RU')}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-icon">📅</span>
+                                <span>Окончание: ${endDate.toLocaleDateString('ru-RU')}</span>
+                            </div>
+                            ${c.hours_per_week ? `
+                            <div class="detail-item">
+                                <span class="detail-icon">⏱️</span>
+                                <span>${c.hours_per_week} часов/неделю</span>
+                            </div>
+                            ` : ''}
+                            ${c.max_students ? `
+                            <div class="detail-item">
+                                <span class="detail-icon">👥</span>
+                                <span>${c.participant_count || 0} / ${c.max_students} студентов</span>
+                            </div>
+                            ` : ''}
+                            ${c.certificate_available ? `
+                            <div class="detail-item">
+                                <span class="detail-icon">📜</span>
+                                <span>Сертификат по завершении</span>
+                            </div>
+                            ` : ''}
+                        </div>
+                        ${buttonHtml}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Register for webinar
+        async function registerForWebinar(webinarId) {
+            try {
+                const response = await fetch(`/api/webinars/${webinarId}/register`, {
+                    method: 'POST'
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    alert('Вы успешно зарегистрированы на вебинар!');
+                    await loadWebinars();
+                } else {
+                    alert(result.detail || 'Ошибка регистрации');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Ошибка соединения с сервером');
+            }
+        }
+
+        // Cancel webinar registration
+        async function cancelWebinarRegistration(webinarId) {
+            if (!confirm('Вы уверены, что хотите отменить регистрацию на вебинар?')) {
+                return;
+            }
+            try {
+                const response = await fetch(`/api/webinars/${webinarId}/register`, {
+                    method: 'DELETE'
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    alert('Регистрация отменена');
+                    await loadWebinars();
+                } else {
+                    alert(result.detail || 'Ошибка отмены регистрации');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Ошибка соединения с сервером');
+            }
+        }
+
+        // Register for course
+        async function registerForCourse(courseId) {
+            try {
+                const response = await fetch(`/api/courses/${courseId}/register`, {
+                    method: 'POST'
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    alert('Вы успешно записаны на курс!');
+                    await loadCourses();
+                } else {
+                    alert(result.detail || 'Ошибка записи');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Ошибка соединения с сервером');
+            }
+        }
+
+        // Cancel course registration
+        async function cancelCourseRegistration(courseId) {
+            if (!confirm('Вы уверены, что хотите отменить запись на курс?')) {
+                return;
+            }
+            try {
+                const response = await fetch(`/api/courses/${courseId}/register`, {
+                    method: 'DELETE'
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    alert('Запись отменена');
+                    await loadCourses();
+                } else {
+                    alert(result.detail || 'Ошибка отмены записи');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Ошибка соединения с сервером');
+            }
+        }
+
+        // Filter functionality
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const sections = document.querySelectorAll('.hackathons-section');
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Remove active class from all buttons
+                filterBtns.forEach(b => b.classList.remove('active'));
+                // Add active class to clicked button
+                btn.classList.add('active');
+
+                // Hide all sections
+                sections.forEach(section => {
+                    section.style.display = 'none';
+                });
+
+                // Show selected section
+                const filter = btn.getAttribute('data-filter');
+                const targetSection = document.getElementById(filter);
+                if (targetSection) {
+                    targetSection.style.display = 'block';
+                    // Load data if needed
+                    if (filter === 'webinars') {
+                        loadWebinars();
+                    } else if (filter === 'courses') {
+                        loadCourses();
+                    }
+                    // Scroll to the section smoothly
+                    setTimeout(() => {
+                        targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 100);
+                }
+            });
+        });
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', async () => {
+            await loadUserData();
+            await loadWebinars();
+        });
+    </script>
+</body>
+</html>
+

@@ -1,6 +1,7 @@
 import sqlite3
 from datetime import datetime
 from fastapi import Request, HTTPException, status
+from typing import Optional, List
 
 # Путь к БД
 DB_PATH = "hackathon_hub.db"
@@ -90,6 +91,131 @@ def init_database():
             created_at TEXT NOT NULL,
             FOREIGN KEY (participation_id) REFERENCES Participations(id) ON DELETE CASCADE,
             FOREIGN KEY (changed_by) REFERENCES Users(id) ON DELETE CASCADE
+        )
+    ''')
+
+    # Создание таблицы проектов/презентаций
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS Projects (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            hackathon_id INTEGER NOT NULL,
+            team_id INTEGER,
+            participation_id INTEGER NOT NULL,
+            title TEXT NOT NULL,
+            description TEXT,
+            presentation_url TEXT,
+            area_topic TEXT,
+            status TEXT DEFAULT 'draft',
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            FOREIGN KEY (hackathon_id) REFERENCES Hackathons(id) ON DELETE CASCADE,
+            FOREIGN KEY (team_id) REFERENCES Teams(id) ON DELETE SET NULL,
+            FOREIGN KEY (participation_id) REFERENCES Participations(id) ON DELETE CASCADE
+        )
+    ''')
+
+    # Создание таблицы областей экспертизы экспертов
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS ExpertAreas (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            expert_id INTEGER NOT NULL,
+            hackathon_id INTEGER NOT NULL,
+            area_topic TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            FOREIGN KEY (expert_id) REFERENCES Users(id) ON DELETE CASCADE,
+            FOREIGN KEY (hackathon_id) REFERENCES Hackathons(id) ON DELETE CASCADE,
+            UNIQUE(expert_id, hackathon_id, area_topic)
+        )
+    ''')
+
+    # Создание таблицы комментариев экспертов к проектам
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS ProjectComments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            project_id INTEGER NOT NULL,
+            expert_id INTEGER NOT NULL,
+            comment TEXT NOT NULL,
+            rating INTEGER,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            FOREIGN KEY (project_id) REFERENCES Projects(id) ON DELETE CASCADE,
+            FOREIGN KEY (expert_id) REFERENCES Users(id) ON DELETE CASCADE
+        )
+    ''')
+
+    # Создание таблицы аудита действий экспертов
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS ExpertAuditLog (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            expert_id INTEGER NOT NULL,
+            hackathon_id INTEGER NOT NULL,
+            action_type TEXT NOT NULL,
+            target_type TEXT,
+            target_id INTEGER,
+            details TEXT,
+            ip_address TEXT,
+            created_at TEXT NOT NULL,
+            FOREIGN KEY (expert_id) REFERENCES Users(id) ON DELETE CASCADE,
+            FOREIGN KEY (hackathon_id) REFERENCES Hackathons(id) ON DELETE CASCADE
+        )
+    ''')
+
+    # Создание таблицы вебинаров/семинаров
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS Webinars (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            description TEXT,
+            speaker TEXT NOT NULL,
+            date_time TEXT NOT NULL,
+            duration_hours REAL,
+            location TEXT DEFAULT 'Онлайн',
+            max_participants INTEGER,
+            status TEXT NOT NULL DEFAULT 'upcoming',
+            created_at TEXT NOT NULL
+        )
+    ''')
+
+    # Создание таблицы интенсивных курсов
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS Courses (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            description TEXT,
+            instructor TEXT NOT NULL,
+            start_date TEXT NOT NULL,
+            end_date TEXT NOT NULL,
+            hours_per_week INTEGER,
+            max_students INTEGER,
+            status TEXT NOT NULL DEFAULT 'upcoming',
+            certificate_available BOOLEAN DEFAULT FALSE,
+            created_at TEXT NOT NULL
+        )
+    ''')
+
+    # Создание таблицы регистраций на вебинары
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS WebinarRegistrations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            webinar_id INTEGER NOT NULL,
+            created_at TEXT NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE,
+            FOREIGN KEY (webinar_id) REFERENCES Webinars(id) ON DELETE CASCADE,
+            UNIQUE(user_id, webinar_id)
+        )
+    ''')
+
+    # Создание таблицы регистраций на курсы
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS CourseRegistrations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            course_id INTEGER NOT NULL,
+            created_at TEXT NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE,
+            FOREIGN KEY (course_id) REFERENCES Courses(id) ON DELETE CASCADE,
+            UNIQUE(user_id, course_id)
         )
     ''')
 
@@ -583,3 +709,433 @@ def get_reputation_history(participation_id: int):
     history = [dict(row) for row in cursor.fetchall()]
     conn.close()
     return history
+
+# ========== Функции для работы с проектами ==========
+def get_projects_by_hackathon(hackathon_id: int, area_topic: str = None):
+    """Получение проектов хакатона, опционально фильтрованных по области"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    if area_topic:
+        cursor.execute('''
+            SELECT p.*, t.name as team_name, u.username, u.fio, part.role
+            FROM Projects p
+            LEFT JOIN Teams t ON p.team_id = t.id
+            JOIN Participations part ON p.participation_id = part.id
+            JOIN Users u ON part.user_id = u.id
+            WHERE p.hackathon_id = ? AND p.area_topic = ?
+            ORDER BY p.created_at DESC
+        ''', (hackathon_id, area_topic))
+    else:
+        cursor.execute('''
+            SELECT p.*, t.name as team_name, u.username, u.fio, part.role
+            FROM Projects p
+            LEFT JOIN Teams t ON p.team_id = t.id
+            JOIN Participations part ON p.participation_id = part.id
+            JOIN Users u ON part.user_id = u.id
+            WHERE p.hackathon_id = ?
+            ORDER BY p.created_at DESC
+        ''', (hackathon_id,))
+    projects = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    return projects
+
+def get_project_by_id(project_id: int):
+    """Получение проекта по ID"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT p.*, t.name as team_name, u.username, u.fio, part.role
+        FROM Projects p
+        LEFT JOIN Teams t ON p.team_id = t.id
+        JOIN Participations part ON p.participation_id = part.id
+        JOIN Users u ON part.user_id = u.id
+        WHERE p.id = ?
+    ''', (project_id,))
+    project = cursor.fetchone()
+    conn.close()
+    return dict(project) if project else None
+
+# ========== Функции для работы с областями экспертизы ==========
+def get_expert_areas(expert_id: int, hackathon_id: int):
+    """Получение областей экспертизы эксперта в хакатоне"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT * FROM ExpertAreas
+        WHERE expert_id = ? AND hackathon_id = ?
+        ORDER BY area_topic
+    ''', (expert_id, hackathon_id))
+    areas = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    return areas
+
+def add_expert_area(expert_id: int, hackathon_id: int, area_topic: str):
+    """Добавление области экспертизы эксперту"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    now = datetime.now().isoformat()
+    try:
+        cursor.execute('''
+            INSERT INTO ExpertAreas (expert_id, hackathon_id, area_topic, created_at)
+            VALUES (?, ?, ?, ?)
+        ''', (expert_id, hackathon_id, area_topic, now))
+        conn.commit()
+        area_id = cursor.lastrowid
+        conn.close()
+        return area_id
+    except sqlite3.IntegrityError:
+        conn.close()
+        raise ValueError("Эта область уже назначена эксперту")
+
+def remove_expert_area(expert_id: int, hackathon_id: int, area_topic: str):
+    """Удаление области экспертизы"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        DELETE FROM ExpertAreas
+        WHERE expert_id = ? AND hackathon_id = ? AND area_topic = ?
+    ''', (expert_id, hackathon_id, area_topic))
+    conn.commit()
+    conn.close()
+
+# ========== Функции для работы с комментариями ==========
+def get_project_comments(project_id: int):
+    """Получение комментариев к проекту"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT c.*, u.username, u.fio
+        FROM ProjectComments c
+        JOIN Users u ON c.expert_id = u.id
+        WHERE c.project_id = ?
+        ORDER BY c.created_at DESC
+    ''', (project_id,))
+    comments = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    return comments
+
+def add_project_comment(project_id: int, expert_id: int, comment: str, rating: int = None):
+    """Добавление комментария к проекту"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    now = datetime.now().isoformat()
+    cursor.execute('''
+        INSERT INTO ProjectComments (project_id, expert_id, comment, rating, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?)
+    ''', (project_id, expert_id, comment, rating, now, now))
+    comment_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+    return comment_id
+
+def update_project_comment(comment_id: int, comment: str, rating: int = None):
+    """Обновление комментария"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    now = datetime.now().isoformat()
+    cursor.execute('''
+        UPDATE ProjectComments
+        SET comment = ?, rating = ?, updated_at = ?
+        WHERE id = ?
+    ''', (comment, rating, now, comment_id))
+    conn.commit()
+    conn.close()
+
+# ========== Функции для аудита ==========
+def log_expert_action(expert_id: int, hackathon_id: int, action_type: str, 
+                     target_type: str = None, target_id: int = None, 
+                     details: str = None, ip_address: str = None):
+    """Логирование действия эксперта"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    now = datetime.now().isoformat()
+    cursor.execute('''
+        INSERT INTO ExpertAuditLog (expert_id, hackathon_id, action_type, target_type, target_id, details, ip_address, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (expert_id, hackathon_id, action_type, target_type, target_id, details, ip_address, now))
+    conn.commit()
+    conn.close()
+
+# ========== Функции для работы с вебинарами ==========
+def get_all_webinars(status_filter: Optional[str] = None):
+    """Получение всех вебинаров"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    if status_filter:
+        cursor.execute('''
+            SELECT * FROM Webinars
+            WHERE status = ?
+            ORDER BY date_time ASC
+        ''', (status_filter,))
+    else:
+        cursor.execute('''
+            SELECT * FROM Webinars
+            ORDER BY date_time ASC
+        ''')
+    webinars = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    return webinars
+
+def get_webinar_by_id(webinar_id: int):
+    """Получение вебинара по ID"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM Webinars WHERE id = ?', (webinar_id,))
+    webinar = cursor.fetchone()
+    conn.close()
+    return dict(webinar) if webinar else None
+
+def create_webinar(name: str, description: str, speaker: str, date_time: str, 
+                   duration_hours: Optional[float] = None, location: str = "Онлайн",
+                   max_participants: Optional[int] = None, status: str = "upcoming"):
+    """Создание вебинара"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    now = datetime.now().isoformat()
+    cursor.execute('''
+        INSERT INTO Webinars (name, description, speaker, date_time, duration_hours, 
+                             location, max_participants, status, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (name, description, speaker, date_time, duration_hours, location, 
+          max_participants, status, now))
+    webinar_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+    return webinar_id
+
+def register_for_webinar(user_id: int, webinar_id: int):
+    """Регистрация пользователя на вебинар"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    # Проверяем, не зарегистрирован ли уже
+    cursor.execute('''
+        SELECT * FROM WebinarRegistrations
+        WHERE user_id = ? AND webinar_id = ?
+    ''', (user_id, webinar_id))
+    if cursor.fetchone():
+        conn.close()
+        raise ValueError("Вы уже зарегистрированы на этот вебинар")
+    
+    # Проверяем максимальное количество участников
+    cursor.execute('SELECT max_participants FROM Webinars WHERE id = ?', (webinar_id,))
+    result = cursor.fetchone()
+    if result and result[0]:
+        cursor.execute('SELECT COUNT(*) FROM WebinarRegistrations WHERE webinar_id = ?', (webinar_id,))
+        current_count = cursor.fetchone()[0]
+        if current_count >= result[0]:
+            conn.close()
+            raise ValueError("Достигнуто максимальное количество участников")
+    
+    now = datetime.now().isoformat()
+    cursor.execute('''
+        INSERT INTO WebinarRegistrations (user_id, webinar_id, created_at)
+        VALUES (?, ?, ?)
+    ''', (user_id, webinar_id, now))
+    registration_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+    return registration_id
+
+def get_user_webinar_registrations(user_id: int):
+    """Получение всех регистраций пользователя на вебинары"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT w.*, wr.created_at as registration_date
+        FROM Webinars w
+        JOIN WebinarRegistrations wr ON w.id = wr.webinar_id
+        WHERE wr.user_id = ?
+        ORDER BY w.date_time ASC
+    ''', (user_id,))
+    registrations = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    return registrations
+
+def cancel_webinar_registration(user_id: int, webinar_id: int):
+    """Отмена регистрации на вебинар"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        DELETE FROM WebinarRegistrations
+        WHERE user_id = ? AND webinar_id = ?
+    ''', (user_id, webinar_id))
+    conn.commit()
+    deleted = cursor.rowcount
+    conn.close()
+    if deleted == 0:
+        raise ValueError("Регистрация не найдена")
+    return True
+
+def is_user_registered_for_webinar(user_id: int, webinar_id: int):
+    """Проверка, зарегистрирован ли пользователь на вебинар"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT * FROM WebinarRegistrations
+        WHERE user_id = ? AND webinar_id = ?
+    ''', (user_id, webinar_id))
+    result = cursor.fetchone()
+    conn.close()
+    return result is not None
+
+def get_webinar_participant_count(webinar_id: int):
+    """Получение количества зарегистрированных участников вебинара"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT COUNT(*) FROM WebinarRegistrations WHERE webinar_id = ?', (webinar_id,))
+    count = cursor.fetchone()[0]
+    conn.close()
+    return count
+
+# ========== Функции для работы с курсами ==========
+def get_all_courses(status_filter: Optional[str] = None):
+    """Получение всех курсов"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    if status_filter:
+        cursor.execute('''
+            SELECT * FROM Courses
+            WHERE status = ?
+            ORDER BY start_date ASC
+        ''', (status_filter,))
+    else:
+        cursor.execute('''
+            SELECT * FROM Courses
+            ORDER BY start_date ASC
+        ''')
+    courses = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    return courses
+
+def get_course_by_id(course_id: int):
+    """Получение курса по ID"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM Courses WHERE id = ?', (course_id,))
+    course = cursor.fetchone()
+    conn.close()
+    return dict(course) if course else None
+
+def create_course(name: str, description: str, instructor: str, start_date: str, end_date: str,
+                  hours_per_week: Optional[int] = None, max_students: Optional[int] = None,
+                  status: str = "upcoming", certificate_available: bool = False):
+    """Создание курса"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    now = datetime.now().isoformat()
+    cursor.execute('''
+        INSERT INTO Courses (name, description, instructor, start_date, end_date,
+                            hours_per_week, max_students, status, certificate_available, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (name, description, instructor, start_date, end_date, hours_per_week,
+          max_students, status, certificate_available, now))
+    course_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+    return course_id
+
+def register_for_course(user_id: int, course_id: int):
+    """Регистрация пользователя на курс"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    # Проверяем, не зарегистрирован ли уже
+    cursor.execute('''
+        SELECT * FROM CourseRegistrations
+        WHERE user_id = ? AND course_id = ?
+    ''', (user_id, course_id))
+    if cursor.fetchone():
+        conn.close()
+        raise ValueError("Вы уже зарегистрированы на этот курс")
+    
+    # Проверяем максимальное количество студентов
+    cursor.execute('SELECT max_students FROM Courses WHERE id = ?', (course_id,))
+    result = cursor.fetchone()
+    if result and result[0]:
+        cursor.execute('SELECT COUNT(*) FROM CourseRegistrations WHERE course_id = ?', (course_id,))
+        current_count = cursor.fetchone()[0]
+        if current_count >= result[0]:
+            conn.close()
+            raise ValueError("Достигнуто максимальное количество студентов")
+    
+    now = datetime.now().isoformat()
+    cursor.execute('''
+        INSERT INTO CourseRegistrations (user_id, course_id, created_at)
+        VALUES (?, ?, ?)
+    ''', (user_id, course_id, now))
+    registration_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+    return registration_id
+
+def get_user_course_registrations(user_id: int):
+    """Получение всех регистраций пользователя на курсы"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT c.*, cr.created_at as registration_date
+        FROM Courses c
+        JOIN CourseRegistrations cr ON c.id = cr.course_id
+        WHERE cr.user_id = ?
+        ORDER BY c.start_date ASC
+    ''', (user_id,))
+    registrations = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    return registrations
+
+def cancel_course_registration(user_id: int, course_id: int):
+    """Отмена регистрации на курс"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        DELETE FROM CourseRegistrations
+        WHERE user_id = ? AND course_id = ?
+    ''', (user_id, course_id))
+    conn.commit()
+    deleted = cursor.rowcount
+    conn.close()
+    if deleted == 0:
+        raise ValueError("Регистрация не найдена")
+    return True
+
+def is_user_registered_for_course(user_id: int, course_id: int):
+    """Проверка, зарегистрирован ли пользователь на курс"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT * FROM CourseRegistrations
+        WHERE user_id = ? AND course_id = ?
+    ''', (user_id, course_id))
+    result = cursor.fetchone()
+    conn.close()
+    return result is not None
+
+def get_course_participant_count(course_id: int):
+    """Получение количества зарегистрированных студентов на курс"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT COUNT(*) FROM CourseRegistrations WHERE course_id = ?', (course_id,))
+    count = cursor.fetchone()[0]
+    conn.close()
+    return count
+
+def get_expert_audit_log(expert_id: int, hackathon_id: int = None):
+    """Получение лога действий эксперта"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    if hackathon_id:
+        cursor.execute('''
+            SELECT * FROM ExpertAuditLog
+            WHERE expert_id = ? AND hackathon_id = ?
+            ORDER BY created_at DESC
+        ''', (expert_id, hackathon_id))
+    else:
+        cursor.execute('''
+            SELECT * FROM ExpertAuditLog
+            WHERE expert_id = ?
+            ORDER BY created_at DESC
+        ''', (expert_id,))
+    logs = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    return logs

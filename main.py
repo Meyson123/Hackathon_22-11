@@ -15,7 +15,16 @@ from db import (
     update_participation_role, update_reputation, get_reputation_history,
     delete_participation, create_team, get_team_by_id, get_team_by_code,
     get_team_members, get_user_team_in_hackathon, add_member_to_team,
-    remove_member_from_team, update_team_name, get_available_teams
+    remove_member_from_team, update_team_name, get_available_teams,
+    get_projects_by_hackathon, get_project_by_id, get_expert_areas,
+    add_expert_area, remove_expert_area, get_project_comments,
+    add_project_comment, update_project_comment, log_expert_action,
+    get_expert_audit_log, get_all_webinars, get_webinar_by_id, create_webinar,
+    register_for_webinar, get_user_webinar_registrations, cancel_webinar_registration,
+    is_user_registered_for_webinar, get_webinar_participant_count,
+    get_all_courses, get_course_by_id, create_course, register_for_course,
+    get_user_course_registrations, cancel_course_registration,
+    is_user_registered_for_course, get_course_participant_count
 )
 from dotenv import load_dotenv
 from datetime import datetime
@@ -93,13 +102,22 @@ class TeamCreate(BaseModel):
     hackathon_id: int
     name: str
 
+
 class TeamUpdate(BaseModel):
     name: str
 
-class HackathonResults(BaseModel):
-    GP = {1:25,2:18,3:15,4:12,5:10,6:8,7:6,8:4,9:2,10:1}
+
+class ProjectCommentCreate(BaseModel):
+    project_id: int
+    comment: str
+    rating: Optional[int] = None
+
+
+class ExpertAreaCreate(BaseModel):
     hackathon_id: int
-    results: dict
+    area_topic: str
+
+
 # Инициализация БД
 init_database()
 
@@ -168,6 +186,16 @@ async def hackathons_page(request: Request):
     user = get_current_user(request)
 
     return templates.TemplateResponse("hackathons.html", {
+        "request": request,
+        "user": user
+    })
+
+
+@app.get("/seminars.html", response_class=HTMLResponse)
+async def seminars_page(request: Request):
+    user = get_current_user(request)
+
+    return templates.TemplateResponse("seminars.html", {
         "request": request,
         "user": user
     })
@@ -264,18 +292,25 @@ async def role_checkup(hackathon_id: int, request: Request):
     if not hackathon:
         raise HTTPException(status_code=404, detail="Хакатон не найден")
 
+    # Проверяем роль пользователя в этом хакатоне
+    participation = get_participation(user["id"], hackathon_id)
+    if participation:
+        role = participation["role"].lower()
+        if role == "captain":
+            return RedirectResponse(url=f"/hackathon/{hackathon_id}/captain")
+        elif role == "expert":
+            return RedirectResponse(url=f"/hackathon/{hackathon_id}/expert")
+        elif role == "team_member" or role == "free_participant":
+            return RedirectResponse(url=f"/hackathon/{hackathon_id}/user")
+    
+    # Если нет участия, проверяем глобальную роль
     role = user["role"].lower()
-
-    if role == "user":
-        return RedirectResponse(url=f"/hackathon/{hackathon_id}/user")
-    elif role == "captain":
-        return RedirectResponse(url=f"/hackathon/{hackathon_id}/captain")
+    if role == "admin":
+        return RedirectResponse(url=f"/hackathon/{hackathon_id}/admin")
     elif role == "case_holder":
         return RedirectResponse(url=f"/hackathon/{hackathon_id}/case-holder")
-    elif role == "admin":
-        return RedirectResponse(url=f"/hackathon/{hackathon_id}/admin")
-    elif role == "expert":
-        return RedirectResponse(url=f"/hackathon/{hackathon_id}/expert")
+    else:
+        return RedirectResponse(url=f"/hackathon/{hackathon_id}/user")
 
 
 # ТВОИ СТРАНИЦЫ ДЛЯ РАЗНЫХ РОЛЕЙ
@@ -352,6 +387,36 @@ async def admin_hackathon_page(hackathon_id: int, request: Request):
         "hackathon": hackathon,
         "user_id": user["id"],
         "user_role": user["role"]
+    })
+
+
+@app.get("/hackathon/{hackathon_id}/expert")
+async def expert_hackathon_page(hackathon_id: int, request: Request):
+    """Страница эксперта хакатона"""
+    user = get_current_user(request)
+    if not user:
+        return RedirectResponse(url="/login.html")
+    
+    # Проверяем, что пользователь является экспертом в этом хакатоне
+    try:
+        require_expert_in_hackathon(request, hackathon_id)
+    except HTTPException:
+        if user["role"] != "admin":
+            raise HTTPException(status_code=403, detail="Требуются права эксперта в данном хакатоне")
+    
+    hackathon = get_hackathon_by_id(hackathon_id)
+    if not hackathon:
+        raise HTTPException(status_code=404, detail="Хакатон не найден")
+    
+    # Получаем области экспертизы эксперта
+    expert_areas = get_expert_areas(user["id"], hackathon_id)
+    
+    return templates.TemplateResponse("expert_hackathon.html", {
+        "request": request,
+        "hackathon": hackathon,
+        "user_id": user["id"],
+        "user_role": user["role"],
+        "expert_areas": expert_areas
     })
 
 
@@ -526,16 +591,17 @@ async def admin_login(request: Request, credentials: dict):
             cursor.execute('''
                 INSERT INTO Users (username, email, password, role, created_at)
                 VALUES (?, ?, ?, ?, ?)
-            ''', ("admin", "admin@hackathon.local", ADM_PASS, "admin", datetime.now().isoformat()))
+            ''', ("admin", "admin@hackathon.local", "admin123", "admin", datetime.now().isoformat()))
             conn.commit()
             user_id = cursor.lastrowid
             conn.close()
             user = get_user_by_id(user_id)
         else:
-            if user["password"] != ADM_PASS:
+            # Update password if needed
+            if user["password"] != "admin123":
                 conn = get_db_connection()
                 cursor = conn.cursor()
-                cursor.execute("UPDATE Users SET password = ? WHERE id = ?", (ADM_PASS, user["id"]))
+                cursor.execute("UPDATE Users SET password = ? WHERE id = ?", ("admin123", user["id"]))
                 conn.commit()
                 conn.close()
 
@@ -1237,153 +1303,215 @@ async def team_page(request: Request):
         "is_captain": team["captain_id"] == user["id"]
     })
 
-def calculate_hackathon_results(hackathon_id: int):
-    """Автоматический расчет результатов хакатона по GP системе"""
-    conn = get_db_connection()
-    cursor = conn.cursor()
 
-    # Получаем хакатон
-    hackathon = get_hackathon_by_id(hackathon_id)
-    if not hackathon:
-        return
+# ========== Webinars API ==========
+class WebinarCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    speaker: str
+    date_time: str
+    duration_hours: Optional[float] = None
+    location: str = "Онлайн"
+    max_participants: Optional[int] = None
+    status: str = "upcoming"
 
-    # Получаем все команды в хакатоне с количеством участников и их репутацией
-    cursor.execute('''
-        SELECT 
-            t.id as team_id,
-            t.name as team_name,
-            COUNT(p.user_id) as member_count,
-            AVG(p.reputation) as avg_reputation
-        FROM Teams t
-        LEFT JOIN Participations p ON t.id = p.team_id
-        WHERE t.hackathon_id = ?
-        GROUP BY t.id
-        HAVING member_count > 0
-        ORDER BY avg_reputation DESC, member_count DESC
-    ''', (hackathon_id,))
 
-    teams = cursor.fetchall()
+@app.get("/api/webinars")
+async def get_webinars_api(request: Request, status_filter: Optional[str] = None):
+    """Получение списка вебинаров"""
+    webinars = get_all_webinars(status_filter)
+    
+    # Добавляем информацию о регистрациях для авторизованных пользователей
+    user = get_current_user(request)
+    if user:
+        for webinar in webinars:
+            webinar["is_registered"] = is_user_registered_for_webinar(user["id"], webinar["id"])
+            webinar["participant_count"] = get_webinar_participant_count(webinar["id"])
+    else:
+        for webinar in webinars:
+            webinar["is_registered"] = False
+            webinar["participant_count"] = get_webinar_participant_count(webinar["id"])
+    
+    return webinars
 
-    # Начисляем репутацию командам по GP системе (только первые 10 мест)
-    for i, team in enumerate(teams[:10]):  # Только первые 10 мест
-        place = i + 1
-        team_id = team['team_id']
-        reputation_award = HackathonResults.GP.get(place, 0)
 
-        if reputation_award > 0:
-            # Получаем всех участников команды
-            cursor.execute('''
-                SELECT p.id as participation_id, p.user_id 
-                FROM Participations p 
-                WHERE p.team_id = ? AND p.hackathon_id = ? AND p.completed = TRUE
-            ''', (team_id, hackathon_id))
+@app.get("/api/webinars/{webinar_id}")
+async def get_webinar_api(webinar_id: int, request: Request):
+    """Получение информации о вебинаре"""
+    webinar = get_webinar_by_id(webinar_id)
+    if not webinar:
+        raise HTTPException(status_code=404, detail="Вебинар не найден")
+    
+    user = get_current_user(request)
+    if user:
+        webinar["is_registered"] = is_user_registered_for_webinar(user["id"], webinar_id)
+    else:
+        webinar["is_registered"] = False
+    webinar["participant_count"] = get_webinar_participant_count(webinar_id)
+    
+    return webinar
 
-            members = cursor.fetchall()
 
-            for member in members:
-                # Получаем текущую репутацию
-                cursor.execute('SELECT reputation FROM Participations WHERE id = ?', (member['participation_id'],))
-                current_reputation = cursor.fetchone()[0]
+@app.post("/api/webinars")
+async def create_webinar_api(webinar_data: WebinarCreate, request: Request, admin=Depends(require_admin)):
+    """Создание вебинара (только для администраторов)"""
+    webinar_id = create_webinar(
+        webinar_data.name,
+        webinar_data.description,
+        webinar_data.speaker,
+        webinar_data.date_time,
+        webinar_data.duration_hours,
+        webinar_data.location,
+        webinar_data.max_participants,
+        webinar_data.status
+    )
+    return {"message": "Вебинар создан", "webinar_id": webinar_id}
 
-                new_reputation = current_reputation + reputation_award
 
-                # Обновляем репутацию
-                update_reputation(
-                    member['participation_id'],
-                    new_reputation,
-                    1,  # Система
-                    f"Автоматическое начисление: {place} место в хакатоне '{hackathon['name']}' (GP: +{reputation_award})"
-                )
+@app.post("/api/webinars/{webinar_id}/register")
+async def register_for_webinar_api(webinar_id: int, request: Request):
+    """Регистрация на вебинар"""
+    user = get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Не авторизован")
+    
+    try:
+        registration_id = register_for_webinar(user["id"], webinar_id)
+        return {"message": "Регистрация успешна", "registration_id": registration_id}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
-    # Начисляем репутацию за участие ВСЕМ участникам, которые завершили хакатон
-    cursor.execute('''
-        SELECT p.id as participation_id, p.user_id
-        FROM Participations p
-        WHERE p.hackathon_id = ? AND p.completed = TRUE
-    ''', (hackathon_id,))
 
-    all_participants = cursor.fetchall()
+@app.delete("/api/webinars/{webinar_id}/register")
+async def cancel_webinar_registration_api(webinar_id: int, request: Request):
+    """Отмена регистрации на вебинар"""
+    user = get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Не авторизован")
+    
+    try:
+        cancel_webinar_registration(user["id"], webinar_id)
+        return {"message": "Регистрация отменена"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
-    participation_bonus = 5  # Базовые очки за участие
 
-    for participant in all_participants:
-        cursor.execute('SELECT reputation FROM Participations WHERE id = ?', (participant['participation_id'],))
-        current_reputation = cursor.fetchone()[0]
+@app.get("/api/webinars/my-registrations")
+async def get_my_webinar_registrations_api(request: Request):
+    """Получение всех регистраций текущего пользователя на вебинары"""
+    user = get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Не авторизован")
+    
+    registrations = get_user_webinar_registrations(user["id"])
+    return registrations
 
-        new_reputation = current_reputation + participation_bonus
 
-        update_reputation(
-            participant['participation_id'],
-            new_reputation,
-            1,  # Система
-            f"Автоматическое начисление: участие в хакатоне '{hackathon['name']}' (+{participation_bonus})"
-        )
+# ========== Courses API ==========
+class CourseCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    instructor: str
+    start_date: str
+    end_date: str
+    hours_per_week: Optional[int] = None
+    max_students: Optional[int] = None
+    status: str = "upcoming"
+    certificate_available: bool = False
 
-    conn.close()
 
-@app.get("/api/leaderboard")
-async def get_leaderboard(request: Request, limit: int = 50):
-    """Получение топа пользователей по репутации с учетом GP системы"""
+@app.get("/api/courses")
+async def get_courses_api(request: Request, status_filter: Optional[str] = None):
+    """Получение списка курсов"""
+    courses = get_all_courses(status_filter)
+    
+    # Добавляем информацию о регистрациях для авторизованных пользователей
+    user = get_current_user(request)
+    if user:
+        for course in courses:
+            course["is_registered"] = is_user_registered_for_course(user["id"], course["id"])
+            course["participant_count"] = get_course_participant_count(course["id"])
+    else:
+        for course in courses:
+            course["is_registered"] = False
+            course["participant_count"] = get_course_participant_count(course["id"])
+    
+    return courses
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
 
-    # Суммируем репутацию из всех участий для каждого пользователя
-    cursor.execute('''
-        SELECT 
-            u.id,
-            u.username,
-            u.fio,
-            u.telegram_nickname,
-            u.city,
-            COALESCE(SUM(p.reputation), 0) as total_reputation,
-            COUNT(p.id) as hackathons_participated,
-            SUM(CASE WHEN p.completed = TRUE THEN 1 ELSE 0 END) as hackathons_completed
-        FROM Users u
-        LEFT JOIN Participations p ON u.id = p.user_id
-        WHERE u.role != 'admin'  # Исключаем админов из топа
-        GROUP BY u.id
-        HAVING total_reputation > 0
-        ORDER BY total_reputation DESC
-        LIMIT ?
-    ''', (limit,))
+@app.get("/api/courses/{course_id}")
+async def get_course_api(course_id: int, request: Request):
+    """Получение информации о курсе"""
+    course = get_course_by_id(course_id)
+    if not course:
+        raise HTTPException(status_code=404, detail="Курс не найден")
+    
+    user = get_current_user(request)
+    if user:
+        course["is_registered"] = is_user_registered_for_course(user["id"], course_id)
+    else:
+        course["is_registered"] = False
+    course["participant_count"] = get_course_participant_count(course_id)
+    
+    return course
 
-    leaderboard = []
-    rank = 1
-    for row in cursor.fetchall():
-        user_data = dict(row)
 
-        # Получаем статистику по местам в хакатонах
-        cursor.execute('''
-            SELECT 
-                COUNT(*) as total_hackathons,
-                SUM(CASE WHEN p.reputation >= ? THEN 1 ELSE 0 END) as first_places,
-                SUM(CASE WHEN p.reputation >= ? AND p.reputation < ? THEN 1 ELSE 0 END) as second_places,
-                SUM(CASE WHEN p.reputation >= ? AND p.reputation < ? THEN 1 ELSE 0 END) as third_places
-            FROM Participations p
-            WHERE p.user_id = ? AND p.completed = TRUE
-        ''', (
-            HackathonResults.GP[1],
-            HackathonResults.GP[2], HackathonResults.GP[1],
-            HackathonResults.GP[3], HackathonResults.GP[2],
-            user_data["id"]
-        ))
+@app.post("/api/courses")
+async def create_course_api(course_data: CourseCreate, request: Request, admin=Depends(require_admin)):
+    """Создание курса (только для администраторов)"""
+    course_id = create_course(
+        course_data.name,
+        course_data.description,
+        course_data.instructor,
+        course_data.start_date,
+        course_data.end_date,
+        course_data.hours_per_week,
+        course_data.max_students,
+        course_data.status,
+        course_data.certificate_available
+    )
+    return {"message": "Курс создан", "course_id": course_id}
 
-        stats = cursor.fetchone()
 
-        leaderboard.append({
-            **user_data,
-            "rank": rank,
-            "first_places": stats["first_places"] if stats else 0,
-            "second_places": stats["second_places"] if stats else 0,
-            "third_places": stats["third_places"] if stats else 0,
-            "total_hackathons": stats["total_hackathons"] if stats else 0
-        })
-        rank += 1
+@app.post("/api/courses/{course_id}/register")
+async def register_for_course_api(course_id: int, request: Request):
+    """Регистрация на курс"""
+    user = get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Не авторизован")
+    
+    try:
+        registration_id = register_for_course(user["id"], course_id)
+        return {"message": "Регистрация успешна", "registration_id": registration_id}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
-    conn.close()
 
-    return leaderboard
+@app.delete("/api/courses/{course_id}/register")
+async def cancel_course_registration_api(course_id: int, request: Request):
+    """Отмена регистрации на курс"""
+    user = get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Не авторизован")
+    
+    try:
+        cancel_course_registration(user["id"], course_id)
+        return {"message": "Регистрация отменена"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/api/courses/my-registrations")
+async def get_my_course_registrations_api(request: Request):
+    """Получение всех регистраций текущего пользователя на курсы"""
+    user = get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Не авторизован")
+    
+    registrations = get_user_course_registrations(user["id"])
+    return registrations
+
+
 if __name__ == "__main__":
     import uvicorn
 
