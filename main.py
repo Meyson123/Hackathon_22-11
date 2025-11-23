@@ -9,7 +9,7 @@ from db import init_database, migrate_hackathons_table
 
 
 ADM_PASS = os.getenv('ADM_PASS')
-app = FastAPI(title="Hackathon Hub")
+app = FastAPI(title="Хакатон Хаб}")
 
 # Middleware для сессий
 app.add_middleware(
