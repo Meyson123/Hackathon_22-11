@@ -274,6 +274,7 @@ async def get_hackathons_api(request: Request, status_filter: Optional[str] = No
     has_published = 'published' in columns
     has_min_participants = 'min_participants' in columns
 
+    # Для обычных пользователей показываем все хакатоны, кроме черновиков
     filtered_hackathons = []
     for hackathon in hackathons:
         cursor.execute("SELECT COUNT(*) FROM Participations WHERE hackathon_id = ?", (hackathon["id"],))
@@ -283,9 +284,11 @@ async def get_hackathons_api(request: Request, status_filter: Optional[str] = No
             published = hackathon.get("published", 0) or 0
             min_participants = hackathon.get("min_participants", 0) or 0
 
-            if published == 1 and participant_count >= min_participants:
+            # Показываем если опубликован ИЛИ если минимальное количество участников достигнуто
+            if published == 1 or participant_count >= min_participants:
                 filtered_hackathons.append(hackathon)
         else:
+            # Если колонок нет, показываем все хакатоны
             filtered_hackathons.append(hackathon)
 
     conn.close()
